@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/browser";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,16 +18,14 @@ export default function LoginPage() {
     setErr(null);
     setLoading(true);
 
-    const action =
+    const result =
       mode === "login"
-        ? supabase.auth.signInWithPassword({ email, password })
-        : supabase.auth.signUp({ email, password });
-
-    const { error } = await action;
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password });
 
     setLoading(false);
 
-    if (error) return setErr(error.message);
+    if (result.error) return setErr(result.error.message);
 
     router.push("/dashboard");
     router.refresh();
@@ -38,7 +36,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
         <h1 className="text-2xl font-semibold">BidWinner AI</h1>
         <p className="text-sm text-white/60 mt-1">
-          {mode === "login" ? "Login" : "Create account"} to generate proposals.
+          {mode === "login" ? "Login" : "Create account"} — generate proposals that feel premium.
         </p>
 
         <div className="mt-6 space-y-3">
@@ -70,9 +68,7 @@ export default function LoginPage() {
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
             className="w-full text-sm text-white/70 hover:text-white"
           >
-            {mode === "login"
-              ? "New here? Create an account"
-              : "Already have an account? Login"}
+            {mode === "login" ? "New here? Create an account" : "Already have an account? Login"}
           </button>
         </div>
       </div>

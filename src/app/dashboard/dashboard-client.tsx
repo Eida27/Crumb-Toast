@@ -1,147 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-type ProposalRow = {
-  id: string;
-  job_title: string;
-  angle: string;
-  tone: string;
-  created_at: string;
-  proposal_md: string;
-};
+export default function DashboardClient({ email }: { email: string }) {
+  const router = useRouter();
+  const supabase = createClient();
 
-export default function DashboardClient({
-  initialCredits,
-  initialProposals,
-}: {
-  initialCredits: number;
-  initialProposals: ProposalRow[];
-}) {
-  const [credits, setCredits] = useState(initialCredits);
-  const [proposals, setProposals] = useState(initialProposals);
-
-  const [jobTitle, setJobTitle] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [proof, setProof] = useState("");
-  const [angle, setAngle] = useState("authority");
-  const [tone, setTone] = useState("premium");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function generate() {
-    setLoading(true);
-    setOutput("");
-
-    const res = await fetch("/api/proposals/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobTitle, jobDescription, proof, angle, tone }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      alert(data?.error ?? "Failed");
-      return;
-    }
-
-    setOutput(data.proposal);
-    setCredits(data.newBalance ?? credits);
-    if (data.saved) setProposals((p: any) => [data.saved, ...p].slice(0, 10));
+  async function logout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
   }
 
   return (
     <main className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold">Dashboard</h1>
-            <p className="text-white/60 text-sm">Credits: {credits}</p>
-          </div>
+      <div className="max-w-3xl mx-auto space-y-4">
+        <h1 className="text-3xl font-semibold">Dashboard</h1>
+        <p className="text-white/60">Logged in as: {email}</p>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <p className="text-sm text-white/70">
+            Next: we add Credits + Proposal Generator + History (the real SaaS loop).
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3">
-            <input
-              className="w-full rounded-lg bg-black/40 border border-white/10 p-3"
-              placeholder="Job title"
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-            />
-            <textarea
-              className="w-full min-h-40 rounded-lg bg-black/40 border border-white/10 p-3"
-              placeholder="Job description"
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                className="w-full rounded-lg bg-black/40 border border-white/10 p-3"
-                value={angle}
-                onChange={(e) => setAngle(e.target.value)}
-              >
-                <option value="authority">Authority</option>
-                <option value="scarcity">Scarcity</option>
-                <option value="loss_aversion">Loss Aversion</option>
-                <option value="status">Status</option>
-                <option value="neutral">Neutral</option>
-              </select>
-
-              <select
-                className="w-full rounded-lg bg-black/40 border border-white/10 p-3"
-                value={tone}
-                onChange={(e) => setTone(e.target.value)}
-              >
-                <option value="premium">Premium</option>
-                <option value="friendly">Friendly</option>
-                <option value="direct">Direct</option>
-              </select>
-            </div>
-
-            <textarea
-              className="w-full min-h-24 rounded-lg bg-black/40 border border-white/10 p-3"
-              placeholder="Proof (truth only): portfolio links, metrics you can prove"
-              value={proof}
-              onChange={(e) => setProof(e.target.value)}
-            />
-
-            <button
-              onClick={generate}
-              disabled={loading || credits <= 0}
-              className="w-full rounded-lg bg-white text-black font-semibold p-3 disabled:opacity-50"
-            >
-              {loading ? "Generating..." : "Generate (1 credit)"}
-            </button>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3">
-            <h2 className="text-lg font-semibold">Output</h2>
-            <pre className="whitespace-pre-wrap text-sm bg-black/40 border border-white/10 rounded-lg p-3 min-h-40">
-              {output || "Generate a proposal to see output here."}
-            </pre>
-
-            <h2 className="text-lg font-semibold pt-2">History</h2>
-            <div className="space-y-2">
-              {proposals.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setOutput(p.proposal_md)}
-                  className="w-full text-left rounded-lg bg-black/40 border border-white/10 p-3 hover:bg-black/60"
-                >
-                  <div className="font-medium">{p.job_title}</div>
-                  <div className="text-xs text-white/60">
-                    {p.angle} • {p.tone}
-                  </div>
-                </button>
-              ))}
-              {proposals.length === 0 && (
-                <p className="text-sm text-white/60">No proposals yet.</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <button
+          onClick={logout}
+          className="rounded-lg bg-white text-black font-semibold px-4 py-2"
+        >
+          Logout
+        </button>
       </div>
     </main>
   );
