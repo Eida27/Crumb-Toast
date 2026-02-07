@@ -21,7 +21,7 @@ const angleInstructions: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
+  const supabase = await createClient(); // ✅ IMPORTANT: await
 
   const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) {
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     "",
     proof ? `Truthful proof:\n${proof}` : "Proof: none provided.",
     "",
-    "Write the proposal now.",
+    "Write the proposal now in Markdown.",
   ].join("\n");
 
   const response = await client.responses.create({
@@ -89,9 +89,13 @@ export async function POST(req: Request) {
     .select("id, job_title, angle, tone, created_at, proposal_md")
     .single();
 
+  if (insert.error) {
+    return NextResponse.json({ error: "Failed to save proposal." }, { status: 500 });
+  }
+
   return NextResponse.json({
     proposal,
     newBalance: spend.data,
-    saved: insert.data ?? null,
+    saved: insert.data,
   });
 }
