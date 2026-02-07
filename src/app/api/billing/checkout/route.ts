@@ -12,57 +12,62 @@ const PACKS = {
 type Tier = keyof typeof PACKS;
 
 export async function POST(req: Request) {
+  // 1) Auth
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user?.id || !user.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const tier = (body?.tier as Tier) ?? "starter";
-  const pack = PACKS[tier] ?? PACKS.starter;
+  // 2) Read body ONCE
+  const body = (await req.json().catch(() => ({}))) as { tier?: Tier };
 
-  const apiKey = process.env.LEMON_SQUEEZY_API_KEY!;
-  const storeId = process.env.LEMON_SQUEEZY_STORE_ID!;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const tier: Tier = body.tier && body.tier in PACKS ? body.tier : "starter";
+  const pack = PACKS[tier];
 
-  const payload = {
+  // 3) Env
+  const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+  const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!apiKey || !storeId || !appUrl) {
+    return NextResponse.json(
+      { error: "Missing environment variables (LEMON_SQUEEZY_API_KEY, LEMON_SQUEEZY_STORE_ID, NEXT_PUBLIC_APP_URL)" },
+      { status: 500 }
+    );
+  }
+
+  // 4) Lemon payload (JSON:API)
+  // IMPORTANT: custom fields must be STRINGS
+  const lemonPayload = {
     data: {
       type: "checkouts",
       attributes: {
-        product_options: {
-          redirect_url: `${appUrl}/billing/success`,
-          enabled_variants: [Number(pack.variantId)],
-        },
-        checkout_options: {
-          background_color: "#000000",
-          headings_color: "#FFFFFF",
-          primary_text_color: "#FFFFFF",
-          secondary_text_color: "#A1A1AA",
-          borders_color: "#27272A",
-          button_color: "#FFFFFF",
-          button_text_color: "#000000",
-        },
         checkout_data: {
           email: user.email,
           custom: {
             user_id: String(user.id),
-            credits: String(pack.credits),  // ✅ MUST BE STRING
             tier: String(tier),
-            pack: String(pack.label),
+            credits: String(pack.credits), // ✅ must be string
           },
+        },
+        product_options: {
+          redirect_url: `${appUrl}/billing/success`,
         },
       },
       relationships: {
-        store: { data: { type: "stores", id: String(storeId) } },
-        variant: { data: { type: "variants", id: String(pack.variantId) } },
+        store: {
+          data: { type: "stores", id: String(storeId) },
+        },
+        variant: {
+          data: { type: "variants", id: String(pack.variantId) },
+        },
       },
     },
   };
 
+  // 5) Call Lemon
   const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
     method: "POST",
     headers: {
@@ -70,7 +75,7 @@ export async function POST(req: Request) {
       "Content-Type": "application/vnd.api+json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(lemonPayload),
   });
 
   const json = await res.json().catch(() => ({}));
@@ -80,5 +85,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: detail, raw: json }, { status: 400 });
   }
 
-  return NextResponse.json({ url: json?.data?.attributes?.url });
+  const url = json?.data?.attributes?.url;
+  if (!url) {
+    return NextResponse.json({ error: "Missing checkout URL", raw: json }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    url,
+    tier,
+    credits: pack.credits,
+    variantId: pack.variantId,
+  });
 }

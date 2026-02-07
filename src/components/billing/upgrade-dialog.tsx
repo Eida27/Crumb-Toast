@@ -17,42 +17,36 @@ import {
 type Tier = "starter" | "pro" | "beast";
 
 const TIERS: Array<{
-  tier: Tier;
+  key: Tier;
   name: string;
   credits: number;
-  tagline: string;
-  label?: string;
-  highlight?: boolean;
+  priceLabel: string;
+  badge: string;
   bullets: string[];
 }> = [
   {
-    tier: "starter",
+    key: "starter",
     name: "Starter",
     credits: 100,
-    tagline: "Get your first wins.",
-    bullets: ["100 proposals", "Best for testing offers", "Instant refill via webhook"],
+    priceLabel: "₱99",
+    badge: "Warm-up",
+    bullets: ["For testing + first clients", "100 generations", "No subscription"],
   },
   {
-    tier: "pro",
+    key: "pro",
     name: "Pro",
     credits: 500,
-    tagline: "The serious freelancer pack.",
-    label: "Most Popular",
-    highlight: true,
-    bullets: [
-      "500 proposals",
-      "Better value per credit",
-      "Designed for daily bidding",
-      "Status signal: you’re not cheap labor",
-    ],
+    priceLabel: "₱399",
+    badge: "Most Popular",
+    bullets: ["Serious freelancing mode", "500 generations", "Better ROI per bid"],
   },
   {
-    tier: "beast",
+    key: "beast",
     name: "Beast",
     credits: 2000,
-    tagline: "Dominate the feed.",
-    label: "Best Value",
-    bullets: ["2000 proposals", "Lowest cost per credit", "For agencies / power users"],
+    priceLabel: "₱999",
+    badge: "Unfair Advantage",
+    bullets: ["Agency / volume bidding", "2000 generations", "Max value pack"],
   },
 ];
 
@@ -60,22 +54,34 @@ export function UpgradeDialog() {
   const [open, setOpen] = useState(false);
   const [loadingTier, setLoadingTier] = useState<Tier | null>(null);
 
-  async function checkout(tier: Tier) {
-    setLoadingTier(tier);
+  async function startCheckout(tier: Tier) {
     try {
+      setLoadingTier(tier);
+      toast.message("Redirecting to Lemon Squeezy checkout…");
+
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier }), // ✅ sends tier
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Checkout failed");
 
-      toast.message("Redirecting to secure checkout...");
+      if (!res.ok) {
+        toast.error(data?.error ?? "Checkout failed.");
+        return;
+      }
+
+      if (!data?.url) {
+        toast.error("Missing checkout URL.");
+        return;
+      }
+
+      setOpen(false);
       window.location.href = data.url;
-    } catch (e: any) {
-      toast.error(e.message ?? "Checkout failed");
+    } catch {
+      toast.error("Network error. Try again.");
+    } finally {
       setLoadingTier(null);
     }
   }
@@ -91,74 +97,48 @@ export function UpgradeDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-4xl border-white/10 bg-black text-white">
+      <DialogContent className="max-w-5xl p-6 border-white/10 bg-black text-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold">
-            Buy credits
-          </DialogTitle>
+          <DialogTitle className="text-xl">Choose your power level</DialogTitle>
           <p className="text-sm text-white/60">
-            Credits are ammo. More credits = more bids = more chances to win.
+            Buy credits. Generate more proposals. Win more bids.
           </p>
         </DialogHeader>
 
         <div className="grid gap-4 md:grid-cols-3">
           {TIERS.map((t) => (
-            <Card
-              key={t.tier}
-              className={[
-                "border-white/10 bg-white/5",
-                t.highlight ? "ring-1 ring-white/20" : "",
-              ].join(" ")}
-            >
+            <Card key={t.key} className="border-white/10 bg-white/5">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>{t.name}</span>
-                  {t.label ? (
-                    <Badge className="border border-white/10 bg-black/30 text-white">
-                      {t.label}
-                    </Badge>
-                  ) : null}
+                  <Badge className="border border-white/10 bg-black/30 text-white">
+                    {t.badge}
+                  </Badge>
                 </CardTitle>
-                <div className="text-3xl font-semibold">{t.credits}</div>
-                <div className="text-sm text-white/60">{t.tagline}</div>
+                <div className="text-sm text-white/60">
+                  <span className="text-white/90 font-semibold">{t.credits}</span>{" "}
+                  credits • {t.priceLabel}
+                </div>
               </CardHeader>
 
               <CardContent className="space-y-3">
-                <ul className="space-y-2 text-sm text-white/70">
+                <ul className="space-y-1 text-xs text-white/60">
                   {t.bullets.map((b) => (
-                    <li key={b} className="flex gap-2">
-                      <span className="mt-[2px] h-2 w-2 rounded-full bg-white/60" />
-                      <span>{b}</span>
-                    </li>
+                    <li key={b}>• {b}</li>
                   ))}
                 </ul>
 
                 <Button
-                  onClick={() => checkout(t.tier)}
+                  className="w-full bg-white text-black hover:bg-white/90"
                   disabled={loadingTier !== null}
-                  className={[
-                    "w-full font-semibold",
-                    t.highlight
-                      ? "bg-white text-black hover:bg-white/90"
-                      : "bg-white/10 text-white hover:bg-white/15 border border-white/10",
-                  ].join(" ")}
+                  onClick={() => startCheckout(t.key)}
                 >
-                  {loadingTier === t.tier ? "Opening checkout..." : "Choose"}
+                  {loadingTier === t.key ? "Redirecting..." : "Buy credits"}
                 </Button>
-
-                {t.highlight ? (
-                  <p className="text-xs text-white/50">
-                    Most users who win consistently pick this.
-                  </p>
-                ) : null}
               </CardContent>
             </Card>
           ))}
         </div>
-
-        <p className="text-xs text-white/50">
-          Ethical persuasion only. No fake claims. Your credibility is the asset.
-        </p>
       </DialogContent>
     </Dialog>
   );

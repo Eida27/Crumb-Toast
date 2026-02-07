@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -20,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
 
+import { UpgradeDialog } from "@/components/billing/upgrade-dialog";
 
 type ProposalRow = {
   id: string;
@@ -32,36 +33,34 @@ type ProposalRow = {
   proposal_md: string;
 };
 
-const ANGLE_META: Record<
-  string,
-  { label: string; hint: string; badge: string }
-> = {
-  authority: {
-    label: "Authority",
-    hint: "Signals competence + control. Client feels safe choosing you.",
-    badge: "Safe Bet",
-  },
-  scarcity: {
-    label: "Scarcity",
-    hint: "Ethical scarcity: boundaries + limited slots. Premium positioning.",
-    badge: "Booked",
-  },
-  loss_aversion: {
-    label: "Loss Aversion",
-    hint: "Makes delay feel expensive: risks + opportunity cost, not fear.",
-    badge: "Urgency",
-  },
-  status: {
-    label: "Status",
-    hint: "High-end vibe: standards, process, and outcomes > cheap labor.",
-    badge: "Premium",
-  },
-  neutral: {
-    label: "Neutral",
-    hint: "Clean, direct, professional. No psychological spice.",
-    badge: "Classic",
-  },
-};
+const ANGLE_META: Record<string, { label: string; hint: string; badge: string }> =
+  {
+    authority: {
+      label: "Authority",
+      hint: "Signals competence + control. Client feels safe choosing you.",
+      badge: "Safe Bet",
+    },
+    scarcity: {
+      label: "Scarcity",
+      hint: "Ethical scarcity: boundaries + limited slots. Premium positioning.",
+      badge: "Booked",
+    },
+    loss_aversion: {
+      label: "Loss Aversion",
+      hint: "Makes delay feel expensive: risks + opportunity cost, not fear.",
+      badge: "Urgency",
+    },
+    status: {
+      label: "Status",
+      hint: "High-end vibe: standards, process, and outcomes > cheap labor.",
+      badge: "Premium",
+    },
+    neutral: {
+      label: "Neutral",
+      hint: "Clean, direct, professional. No psychological spice.",
+      badge: "Classic",
+    },
+  };
 
 const TONE_META: Record<string, { label: string; badge: string }> = {
   premium: { label: "Premium", badge: "High-Status" },
@@ -96,35 +95,25 @@ export default function DashboardClient({
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ Refresh credits on page load (useful after returning from Lemon checkout)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/credits", { method: "GET" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (typeof data.balance === "number") setCredits(data.balance);
+      } catch {
+        // silent (no toast) - avoid annoying users on load
+      }
+    })();
+  }, []);
+
   const canGenerate = useMemo(() => {
     const jt = jobTitle.trim().length >= 3;
     const jd = jobDescription.trim().length >= 30;
     return jt && jd && !loading && credits > 0;
   }, [jobTitle, jobDescription, loading, credits]);
-
-  const [upgrading, setUpgrading] = useState(false);
-
-  async function upgrade() {
-    try {
-        setUpgrading(true);
-        toast.message("Redirecting to Lemon Squeezy checkout…");
-
-        const res = await fetch("/api/billing/checkout", { method: "POST" });
-        const data = await res.json();
-
-        if (!res.ok) {
-            toast.error(data?.error ?? "Upgrade failed.");
-            return;
-        }
-
-        // Redirect user to Lemon Squeezy checkout page
-        window.location.href = data.url;
-    } catch {
-        toast.error("Network error. Try again.");
-    } finally {
-        setUpgrading(false);
-    }
-    }
 
   async function logout() {
     await supabase.auth.signOut();
@@ -222,25 +211,22 @@ export default function DashboardClient({
             >
               Credits: {credits}
             </Badge>
-            <Button
-                variant="secondary"
-                className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={upgrade}
-                disabled={upgrading}
-            >
-                {upgrading ? "Redirecting..." : "Upgrade"}
-            </Button>
+
+            <UpgradeDialog />
 
             <Link href="/billing">
-                <Button
-                  variant="secondary"
-                  className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                >
-                  Billing
-                </Button>
+              <Button
+                variant="secondary"
+                className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+              >
+                Billing
+              </Button>
             </Link>
 
-            <Button onClick={logout} className="bg-white text-black hover:bg-white/90">
+            <Button
+              onClick={logout}
+              className="bg-white text-black hover:bg-white/90"
+            >
               Logout
             </Button>
           </div>
@@ -332,9 +318,7 @@ export default function DashboardClient({
               <Separator className="bg-white/10" />
 
               <div className="space-y-2">
-                <label className="text-sm text-white/70">
-                  Proof (truth only)
-                </label>
+                <label className="text-sm text-white/70">Proof (truth only)</label>
                 <Textarea
                   value={proof}
                   onChange={(e) => setProof(e.target.value)}

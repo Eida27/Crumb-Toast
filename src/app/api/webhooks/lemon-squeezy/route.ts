@@ -85,6 +85,8 @@ export async function POST(req: NextRequest) {
       p_amount: creditsToGrant,
     });
 
+    await admin.rpc("grant_credits", { p_user_id: userId, p_amount: creditsToGrant });
+
     if (creditRes.error) {
       return NextResponse.json({ error: creditRes.error.message }, { status: 500 });
     }
