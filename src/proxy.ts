@@ -23,9 +23,7 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // refresh session cookies
   await supabase.auth.getUser();
-
   return response;
 }
 
