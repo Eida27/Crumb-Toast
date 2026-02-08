@@ -14,26 +14,30 @@ export default function LoginPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
-  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof window !== "undefined" ? window.location.origin : "");
 
   useEffect(() => {
-    if (!cooldownUntil) {
-      setCooldownRemaining(0);
-      return;
-    }
+    if (!cooldownUntil) return;
 
-    const updateRemaining = () => {
-      const remainingMs = Math.max(0, cooldownUntil - Date.now());
-      setCooldownRemaining(Math.ceil(remainingMs / 1000));
-      if (remainingMs <= 0) {
+    const interval = window.setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      if (current >= cooldownUntil) {
+        window.clearInterval(interval);
         setCooldownUntil(null);
       }
-    };
+    }, 1000);
 
-    updateRemaining();
-    const interval = window.setInterval(updateRemaining, 1000);
     return () => window.clearInterval(interval);
   }, [cooldownUntil]);
+
+  const cooldownRemaining = cooldownUntil
+    ? Math.max(0, Math.ceil((cooldownUntil - now) / 1000))
+    : 0;
 
   async function submit() {
     setErr(null);
@@ -42,19 +46,31 @@ export default function LoginPage() {
       setErr("Please enter an email and password.");
       return;
     }
+    if (cooldownRemaining > 0) {
+      setErr(`Please wait ${cooldownRemaining}s before trying again.`);
+      return;
+    }
     setLoading(true);
 
     const result =
       mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+        : await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: appUrl ? `${appUrl}/auth/callback` : undefined,
+            },
+          });
 
     setLoading(false);
 
     if (result.error) {
       const message = result.error.message;
       if (message.toLowerCase().includes("rate limit")) {
-        setErr("Email rate limit exceeded. Please wait a bit or log in if you already signed up.");
+        const nextCooldown = Date.now() + 60_000;
+        setCooldownUntil(nextCooldown);
+        setErr("Email rate limit exceeded. Please wait a minute before trying again.");
         return;
       }
       return setErr(message);
