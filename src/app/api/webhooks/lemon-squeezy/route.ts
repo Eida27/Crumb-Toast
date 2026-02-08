@@ -14,24 +14,25 @@ export async function POST(req: NextRequest) {
   const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET!;
   const signatureHeader = req.headers.get("x-signature") || "";
 
-  const computed = crypto
+  const computedHex = crypto
     .createHmac("sha256", secret)
     .update(rawBody, "utf8")
     .digest("hex");
 
-  if (
-    !signatureHeader ||
-    signatureHeader.length !== computed.length ||
-    !crypto.timingSafeEqual(
-      Buffer.from(computed, "utf8"),
-      Buffer.from(signatureHeader, "utf8")
-    )
-  ) {
+  // Compare as HEX buffers (more correct than utf8 for signatures)
+  const sigOk =
+    signatureHeader &&
+    signatureHeader.length === computedHex.length &&
+    crypto.timingSafeEqual(
+      Buffer.from(computedHex, "hex"),
+      Buffer.from(signatureHeader, "hex")
+    );
+
+  if (!sigOk) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   const payload = JSON.parse(rawBody);
-
   const eventName = req.headers.get("x-event-name") || "unknown";
 
   const userId =
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
     custom_data: payload?.meta?.custom_data,
   });
 
+  // Idempotency
   const eventHash = crypto.createHash("sha256").update(rawBody).digest("hex");
   const admin = createAdminClient();
 
@@ -62,9 +64,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: ins.error.message }, { status: 500 });
   }
 
+  // One-time purchase top-up
   if (eventName === "order_created") {
     const status = String(payload?.data?.attributes?.status ?? "").toLowerCase();
-
     if (status !== "paid") {
       return NextResponse.json({ ok: true, ignored: `order status: ${status}` });
     }
@@ -85,10 +87,11 @@ export async function POST(req: NextRequest) {
       p_amount: creditsToGrant,
     });
 
-    await admin.rpc("grant_credits", { p_user_id: userId, p_amount: creditsToGrant });
-
     if (creditRes.error) {
-      return NextResponse.json({ error: creditRes.error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: creditRes.error.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true, credited: creditsToGrant });

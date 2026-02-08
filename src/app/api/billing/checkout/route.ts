@@ -12,62 +12,53 @@ const PACKS = {
 type Tier = keyof typeof PACKS;
 
 export async function POST(req: Request) {
-  // 1) Auth
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user?.id || !user.email) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 2) Read body ONCE
-  const body = (await req.json().catch(() => ({}))) as { tier?: Tier };
-
-  const tier: Tier = body.tier && body.tier in PACKS ? body.tier : "starter";
+  // Read tier once
+  const body = (await req.json().catch(() => ({}))) as { tier?: string };
+  const tier = (body.tier && body.tier in PACKS ? body.tier : "starter") as Tier;
   const pack = PACKS[tier];
 
-  // 3) Env
   const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
   const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
   if (!apiKey || !storeId || !appUrl) {
     return NextResponse.json(
-      { error: "Missing environment variables (LEMON_SQUEEZY_API_KEY, LEMON_SQUEEZY_STORE_ID, NEXT_PUBLIC_APP_URL)" },
+      { error: "Missing LEMON_SQUEEZY_API_KEY / LEMON_SQUEEZY_STORE_ID / NEXT_PUBLIC_APP_URL" },
       { status: 500 }
     );
   }
 
-  // 4) Lemon payload (JSON:API)
-  // IMPORTANT: custom fields must be STRINGS
-  const lemonPayload = {
+  // NOTE: Lemon requires custom fields to be strings
+  const lsBody = {
     data: {
       type: "checkouts",
       attributes: {
-        checkout_data: {
-          email: user.email,
-          custom: {
-            user_id: String(user.id),
-            tier: String(tier),
-            credits: String(pack.credits), // ✅ must be string
-          },
-        },
         product_options: {
           redirect_url: `${appUrl}/billing/success`,
         },
+        checkout_data: {
+          email: user.email ?? undefined,
+          custom: {
+            user_id: String(user.id),
+            tier: String(tier),
+            credits: String(pack.credits),
+          },
+        },
       },
       relationships: {
-        store: {
-          data: { type: "stores", id: String(storeId) },
-        },
-        variant: {
-          data: { type: "variants", id: String(pack.variantId) },
-        },
+        store: { data: { type: "stores", id: String(storeId) } },
+        variant: { data: { type: "variants", id: String(pack.variantId) } },
       },
     },
   };
 
-  // 5) Call Lemon
   const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
     method: "POST",
     headers: {
@@ -75,7 +66,7 @@ export async function POST(req: Request) {
       "Content-Type": "application/vnd.api+json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(lemonPayload),
+    body: JSON.stringify(lsBody),
   });
 
   const json = await res.json().catch(() => ({}));
@@ -90,10 +81,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing checkout URL", raw: json }, { status: 500 });
   }
 
-  return NextResponse.json({
-    url,
-    tier,
-    credits: pack.credits,
-    variantId: pack.variantId,
-  });
+  return NextResponse.json({ url });
 }

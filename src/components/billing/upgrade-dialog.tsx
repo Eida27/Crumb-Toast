@@ -78,7 +78,9 @@ export function UpgradeDialog() {
       }
 
       setOpen(false);
+      console.log("LEMON CHECKOUT URL:", data.url);
       window.location.href = data.url;
+
     } catch {
       toast.error("Network error. Try again.");
     } finally {

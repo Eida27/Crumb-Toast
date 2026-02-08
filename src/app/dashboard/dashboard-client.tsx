@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -22,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import Link from "next/link";
 import { UpgradeDialog } from "@/components/billing/upgrade-dialog";
 
 type ProposalRow = {
@@ -95,18 +95,32 @@ export default function DashboardClient({
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Refresh credits on page load (useful after returning from Lemon checkout)
+  // ✅ HERE is the correct place for your credits refresh useEffect
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/credits", { method: "GET" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (typeof data.balance === "number") setCredits(data.balance);
-      } catch {
-        // silent (no toast) - avoid annoying users on load
-      }
-    })();
+    let alive = true;
+
+    async function refreshCredits() {
+      const res = await fetch("/api/credits", { method: "GET" });
+      if (!res.ok) return;
+
+      const data = await res.json();
+      if (!alive) return;
+
+      if (typeof data.balance === "number") setCredits(data.balance);
+    }
+
+    // fetch once immediately
+    refreshCredits();
+
+    // optional short polling window (helps when webhook is slightly delayed)
+    const interval = setInterval(refreshCredits, 3000);
+    const stop = setTimeout(() => clearInterval(interval), 15000);
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+      clearTimeout(stop);
+    };
   }, []);
 
   const canGenerate = useMemo(() => {
@@ -189,9 +203,7 @@ export default function DashboardClient({
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              BidWinner AI
-            </h1>
+            <h1 className="text-3xl font-semibold tracking-tight">BidWinner AI</h1>
             <p className="mt-1 text-sm text-white/60">
               Logged in as <span className="text-white/80">{email}</span>
             </p>
@@ -286,9 +298,7 @@ export default function DashboardClient({
                       <SelectItem value="neutral">Neutral</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-white/50">
-                    {ANGLE_META[angle]?.hint}
-                  </p>
+                  <p className="text-xs text-white/50">{ANGLE_META[angle]?.hint}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -353,7 +363,7 @@ export default function DashboardClient({
 
               {credits <= 0 && (
                 <p className="text-sm text-red-300">
-                  You’re out of credits. Upgrade is the next build.
+                  You’re out of credits. Upgrade to continue.
                 </p>
               )}
             </CardContent>
@@ -366,22 +376,13 @@ export default function DashboardClient({
                 <CardTitle>Output</CardTitle>
                 <div className="flex items-center gap-2">
                   {output ? (
-                    <>
-                      <Button
-                        variant="secondary"
-                        className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                        onClick={() => copy(output)}
-                      >
-                        Copy
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                        onClick={() => toast.info("Export PDF comes next.")}
-                      >
-                        Export
-                      </Button>
-                    </>
+                    <Button
+                      variant="secondary"
+                      className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      onClick={() => copy(output)}
+                    >
+                      Copy
+                    </Button>
                   ) : (
                     <Badge className="border border-white/10 bg-black/30 text-white">
                       Awaiting generation
@@ -391,18 +392,9 @@ export default function DashboardClient({
               </CardHeader>
 
               <CardContent>
-                {loading ? (
-                  <div className="space-y-3">
-                    <div className="h-4 w-5/6 animate-pulse rounded bg-white/10" />
-                    <div className="h-4 w-4/6 animate-pulse rounded bg-white/10" />
-                    <div className="h-4 w-3/6 animate-pulse rounded bg-white/10" />
-                    <div className="h-4 w-5/6 animate-pulse rounded bg-white/10" />
-                  </div>
-                ) : (
-                  <pre className="min-h-[220px] whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-4 text-sm leading-relaxed text-white/90">
-                    {output || "Generate once and your proposal appears here."}
-                  </pre>
-                )}
+                <pre className="min-h-[220px] whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-4 text-sm leading-relaxed text-white/90">
+                  {output || "Generate once and your proposal appears here."}
+                </pre>
               </CardContent>
             </Card>
 
