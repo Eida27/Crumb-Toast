@@ -21,11 +21,13 @@ export default async function DashboardPage() {
   const proposalsRes = await supabase
     .from("proposals")
     .select("id, job_title, angle, tone, created_at, proposal_md")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(10);
 
   return (
     <DashboardClient
+      userId={user.id}
       email={user.email ?? ""}
       initialCredits={creditsRes.data?.balance ?? 0}
       initialProposals={proposalsRes.data ?? []}

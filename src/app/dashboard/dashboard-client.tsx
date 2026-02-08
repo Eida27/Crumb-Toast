@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
@@ -69,16 +69,28 @@ const TONE_META: Record<string, { label: string; badge: string }> = {
 };
 
 export default function DashboardClient({
+  userId,
   email,
   initialCredits,
   initialProposals,
 }: {
+  userId: string;
   email: string;
   initialCredits: number;
   initialProposals: ProposalRow[];
 }) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
+  const searchParams = useSearchParams();
+  const fromPurchase = searchParams.get("purchase") === "1";
+  const [syncing, setSyncing] = useState<boolean>(fromPurchase);
+
+  useEffect(() => {
+    if (!fromPurchase) return;
+    const t = setTimeout(() => setSyncing(false), 60000);
+    return () => clearTimeout(t);
+  }, [fromPurchase]);
 
   const [credits, setCredits] = useState<number>(initialCredits ?? 0);
   const [proposals, setProposals] = useState<ProposalRow[]>(
@@ -95,33 +107,70 @@ export default function DashboardClient({
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ HERE is the correct place for your credits refresh useEffect
+  // ✅ Credits sync: realtime first, polling fallback
   useEffect(() => {
     let alive = true;
 
     async function refreshCredits() {
-      const res = await fetch("/api/credits", { method: "GET" });
+      const res = await fetch("/api/credits", { method: "GET", cache: "no-store" });
       if (!res.ok) return;
 
       const data = await res.json();
       if (!alive) return;
 
-      if (typeof data.balance === "number") setCredits(data.balance);
+      if (typeof data.balance === "number") {
+        setCredits((prev) => {
+          if (data.balance > prev) {
+            toast.success(`Credits added: +${data.balance - prev}`);
+            setSyncing(false);
+          }
+          return data.balance;
+        });
+      }
     }
 
-    // fetch once immediately
+    // 1) immediate fetch
     refreshCredits();
 
-    // optional short polling window (helps when webhook is slightly delayed)
-    const interval = setInterval(refreshCredits, 3000);
-    const stop = setTimeout(() => clearInterval(interval), 15000);
+    // 2) realtime subscription (instant updates)
+    const channel = supabase
+      .channel(`credits:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "credits",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const next = (payload.new as any)?.balance;
+          if (typeof next === "number") {
+            setCredits((prev) => {
+              if (next > prev) toast.success(`Credits added: +${next - prev}`);
+              if (next > prev) setSyncing(false);
+              return next;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // 3) burst polling (covers webhook delay)
+    const fast = setInterval(refreshCredits, 3000);
+    const fastStop = setTimeout(() => clearInterval(fast), 45000);
+
+    // 4) slow polling fallback (covers realtime disabled / flaky)
+    const slow = setInterval(refreshCredits, 30000);
 
     return () => {
       alive = false;
-      clearInterval(interval);
-      clearTimeout(stop);
+      clearInterval(fast);
+      clearTimeout(fastStop);
+      clearInterval(slow);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [supabase, userId]);
 
   const canGenerate = useMemo(() => {
     const jt = jobTitle.trim().length >= 3;
@@ -200,6 +249,23 @@ export default function DashboardClient({
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 py-10">
+        {syncing && (
+          <div className="mb-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-sm font-medium text-white/90">
+                  Processing payment…
+                </div>
+                <div className="mt-1 text-xs text-white/60">
+                  Keep this tab open. Credits will appear automatically after webhook confirmation.
+                </div>
+              </div>
+              <Badge className="border border-white/10 bg-black/30 text-white">
+                Syncing
+              </Badge>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
