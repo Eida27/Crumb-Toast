@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -43,10 +42,6 @@ export default function LoginPage() {
       setErr("Please enter an email and password.");
       return;
     }
-    if (cooldownRemaining > 0) {
-      setErr(`Please wait ${cooldownRemaining}s before trying again.`);
-      return;
-    }
     setLoading(true);
 
     const result =
@@ -59,9 +54,7 @@ export default function LoginPage() {
     if (result.error) {
       const message = result.error.message;
       if (message.toLowerCase().includes("rate limit")) {
-        const nextCooldown = Date.now() + 60_000;
-        setCooldownUntil(nextCooldown);
-        setErr("Email rate limit exceeded. Please wait a minute before trying again.");
+        setErr("Email rate limit exceeded. Please wait a bit or log in if you already signed up.");
         return;
       }
       return setErr(message);
