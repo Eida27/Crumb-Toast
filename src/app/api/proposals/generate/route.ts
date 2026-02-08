@@ -3,6 +3,8 @@ import OpenAI from "openai";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const BodySchema = z.object({
   jobTitle: z.string().min(3).max(120),
@@ -41,7 +43,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No credits left." }, { status: 402 });
   }
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
+  }
+  const client = new OpenAI({ apiKey });
 
   const system = [
     "You are BidWinner AI: proposal writer optimized for replies.",
