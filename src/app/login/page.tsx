@@ -12,10 +12,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function submit() {
     setErr(null);
+    setNotice(null);
+    if (!email.trim() || !password) {
+      setErr("Please enter an email and password.");
+      return;
+    }
     setLoading(true);
 
     const result =
@@ -25,7 +31,19 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (result.error) return setErr(result.error.message);
+    if (result.error) {
+      const message = result.error.message;
+      if (message.toLowerCase().includes("rate limit")) {
+        setErr("Email rate limit exceeded. Please wait a bit or log in if you already signed up.");
+        return;
+      }
+      return setErr(message);
+    }
+
+    if (mode === "signup" && !result.data.session) {
+      setNotice("Check your email for a confirmation link to finish signing up.");
+      return;
+    }
 
     router.push("/dashboard");
     router.refresh();
@@ -55,6 +73,7 @@ export default function LoginPage() {
           />
 
           {err && <p className="text-sm text-red-400">{err}</p>}
+          {notice && <p className="text-sm text-emerald-300">{notice}</p>}
 
           <button
             onClick={submit}
