@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [resending, setResending] = useState(false);
 
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -85,6 +87,29 @@ export default function LoginPage() {
     router.refresh();
   }
 
+  async function resendConfirmation() {
+    setErr(null);
+    setNotice(null);
+    if (!email.trim()) {
+      setErr("Enter your email to resend the confirmation link.");
+      return;
+    }
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: appUrl ? `${appUrl}/auth/callback` : undefined,
+      },
+    });
+    setResending(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setNotice("Confirmation email resent. Please check your inbox or spam folder.");
+  }
+
   return (
     <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -110,6 +135,17 @@ export default function LoginPage() {
 
           {err && <p className="text-sm text-red-400">{err}</p>}
           {notice && <p className="text-sm text-emerald-300">{notice}</p>}
+
+          {mode === "signup" && notice && (
+            <button
+              type="button"
+              onClick={resendConfirmation}
+              disabled={resending}
+              className="w-full text-sm text-white/70 hover:text-white disabled:opacity-50"
+            >
+              {resending ? "Resending..." : "Resend confirmation email"}
+            </button>
+          )}
 
           <button
             onClick={submit}
