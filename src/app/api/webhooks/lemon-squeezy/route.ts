@@ -11,7 +11,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
 
-  const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET!;
+  const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET;
+  if (!secret) {
+    return NextResponse.json(
+      { error: "Missing LEMON_SQUEEZY_WEBHOOK_SECRET" },
+      { status: 500 }
+    );
+  }
   const signatureHeader = req.headers.get("x-signature") || "";
 
   const computedHex = crypto
