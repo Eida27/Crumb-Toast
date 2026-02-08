@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,6 +13,27 @@ export default function LoginPage() {
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  useEffect(() => {
+    if (!cooldownUntil) {
+      setCooldownRemaining(0);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const remainingMs = Math.max(0, cooldownUntil - Date.now());
+      setCooldownRemaining(Math.ceil(remainingMs / 1000));
+      if (remainingMs <= 0) {
+        setCooldownUntil(null);
+      }
+    };
+
+    updateRemaining();
+    const interval = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(interval);
+  }, [cooldownUntil]);
 
   async function submit() {
     setErr(null);
@@ -77,10 +97,16 @@ export default function LoginPage() {
 
           <button
             onClick={submit}
-            disabled={loading}
+            disabled={loading || cooldownRemaining > 0}
             className="w-full rounded-lg bg-white text-black font-semibold p-3 disabled:opacity-50"
           >
-            {loading ? "Please wait..." : mode === "login" ? "Login" : "Sign up"}
+            {loading
+              ? "Please wait..."
+              : cooldownRemaining > 0
+                ? `Try again in ${cooldownRemaining}s`
+                : mode === "login"
+                  ? "Login"
+                  : "Sign up"}
           </button>
 
           <button
