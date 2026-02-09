@@ -113,7 +113,7 @@ export function UpgradeDialog() {
               <CardHeader className="items-center text-center">
                 <CardTitle className="flex flex-col items-center gap-2">
                   <div className="text-base">{t.name}</div>
-                  <Badge className="w-[140px] justify-center whitespace-nowrap border border-white/10 bg-black/30 text-center text-white">
+                  <Badge className="flex h-7 min-w-[140px] items-center justify-center whitespace-nowrap border border-white/10 bg-black/30 px-3 text-center text-white">
                     {t.badge}
                   </Badge>
                 </CardTitle>
