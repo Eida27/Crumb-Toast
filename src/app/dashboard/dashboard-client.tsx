@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { createClient } from "@/lib/supabase/client";
+import { useTypewriter } from "@/hooks/use-typewriter";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +71,9 @@ const TONE_META: Record<string, { label: string; badge: string }> = {
   direct: { label: "Direct", badge: "Sharp" },
 };
 
+const MotionButton = motion.create(Button);
+const MotionCard = motion.create(Card);
+
 export default function DashboardClient({
   userId,
   email,
@@ -121,6 +126,8 @@ export default function DashboardClient({
 
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { displayedText, isTyping } = useTypewriter(output, 5);
 
   const applyCreditsUpdate = useCallback(
     (nextBalance: number, options: { silentToast?: boolean } = {}) => {
@@ -291,7 +298,7 @@ export default function DashboardClient({
         setProposals((prev) => [data.saved, ...prev].slice(0, 10));
       }
 
-      toast.success("Proposal generated.");
+      toast.success("LETHAL COPY DEPLOYED.");
     } catch {
       toast.error("Network error. Try again.");
     } finally {
@@ -300,85 +307,88 @@ export default function DashboardClient({
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      {/* Subtle premium background */}
-      <div className="pointer-events-none fixed inset-0 opacity-60">
-        <div className="absolute -top-24 left-1/2 h-64 w-[900px] -translate-x-1/2 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute top-1/3 left-10 h-52 w-52 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute bottom-20 right-10 h-52 w-52 rounded-full bg-white/5 blur-3xl" />
+    <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden selection:bg-[#00f3ff] selection:text-black">
+      {/* Cyberpunk Grid Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-20"
+        style={{
+          backgroundImage: "linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px)",
+          backgroundSize: "40px 40px"
+        }}
+      />
+
+      {/* Ambient Glows */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] bg-[#00f3ff]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[10%] w-[600px] h-[600px] bg-[#39ff14]/5 rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-10">
+      <div className="relative mx-auto max-w-7xl px-4 py-8 z-10">
         {syncing && (
-          <div className="mb-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mb-5 rounded-none border-l-4 border-[#39ff14] bg-[#39ff14]/5 p-4 backdrop-blur-md">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <div className="text-sm font-medium text-white/90">
-                  Processing payment…
+                <div className="text-sm font-bold text-[#39ff14] uppercase tracking-widest">
+                  Processing Payment
                 </div>
-                <div className="mt-1 text-xs text-white/60">
-                  Keep this tab open. Credits will appear automatically after webhook confirmation.
+                <div className="mt-1 text-xs text-white/60 font-mono">
+                  Funds securing... Credits will deploy automatically.
                 </div>
               </div>
-              <Badge className="border border-white/10 bg-black/30 text-white">
-                Syncing
+              <Badge className="border border-[#39ff14] bg-[#39ff14]/10 text-[#39ff14] animate-pulse rounded-none">
+                SYNCING
               </Badge>
             </div>
           </div>
         )}
+
         {/* Header */}
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-6 border-b border-white/5 pb-6">
           <div>
             <h1
-              className="text-3xl font-semibold tracking-tight text-cyan-200"
+              className="text-4xl font-black tracking-tighter text-white uppercase italic"
               style={{
-                textShadow:
-                  "0 0 12px rgba(34, 211, 238, 0.6), 0 0 32px rgba(56, 189, 248, 0.35)",
+                textShadow: "0 0 20px rgba(0, 243, 255, 0.3)"
               }}
             >
-              BidWinner AI
+              BidWinner: <span className="text-[#00f3ff]">The Edge</span>
             </h1>
-            <p className="mt-1 text-sm text-white/60">
-              Logged in as <span className="text-white/80">{email}</span>
+            <p className="mt-2 text-sm text-gray-400 font-mono">
+              Logged in as <span className="text-white">{email}</span>
             </p>
-            <p className="mt-2 text-sm text-white/60">
-              Your edge:{" "}
-              <span className="text-white/80">
-                authority, urgency, and premium framing
-              </span>{" "}
-              — without lying.
+            <p className="mt-2 text-lg text-white/90 font-light">
+              While they sleep, <span className="text-[#39ff14] font-semibold">you dominate</span>. Authority, Urgency, and Control—on demand.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Badge
-              variant={credits > 0 ? "secondary" : "destructive"}
-              className="border border-white/10 bg-gradient-to-r from-white/10 via-white/5 to-transparent text-white"
+              variant="outline"
+              className="border-[#39ff14]/50 bg-[#39ff14]/5 text-[#39ff14] shadow-[0_0_10px_rgba(57,255,20,0.2)] animate-pulse rounded-sm px-3 py-1 text-xs uppercase tracking-widest"
             >
-              Credits: {credits}
+              SYSTEM: HUNTING
             </Badge>
-            <Badge className="border border-white/10 bg-black/30 text-white">
-              {creditsStatus === "loading"
-                ? "Syncing"
-                : creditsStatus === "error"
-                  ? "Needs attention"
-                  : "Live"}
+
+            <Badge
+              className={`border border-white/10 bg-black/50 backdrop-blur-md text-white rounded-sm px-3 py-1 font-mono ${credits === 0 ? "text-red-500 border-red-500/50" : ""}`}
+            >
+              AMMO: {credits}
             </Badge>
 
             <UpgradeDialog />
 
             <Link href="/billing">
               <Button
-                variant="secondary"
-                className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                variant="ghost"
+                className="border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-[#00f3ff] rounded-sm uppercase tracking-wider text-xs font-bold"
               >
-                Billing
+                Arsenal
               </Button>
             </Link>
 
             <Button
               onClick={logout}
-              className="bg-white text-black hover:bg-white/90"
+              variant="ghost"
+              className="text-white/50 hover:text-white hover:bg-transparent"
             >
               Logout
             </Button>
@@ -386,108 +396,79 @@ export default function DashboardClient({
         </div>
 
         {credits <= 0 && (
-          <Card className="mb-6 border-amber-500/40 bg-amber-500/10">
-            <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 border border-red-500/30 bg-red-500/5 p-4 rounded-sm"
+          >
+             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-sm font-semibold text-amber-100">
-                  You are out of credits
+                <div className="text-sm font-bold text-red-500 uppercase tracking-widest">
+                  CRITICAL ALERT: OUT OF AMMO
                 </div>
-                <p className="mt-1 text-sm text-amber-100/70">
-                  Top up now to keep generating proposals without delays.
+                <p className="mt-1 text-sm text-red-200/70 font-mono">
+                  Reload immediately to maintain competitive advantage.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <UpgradeDialog />
-                <Link href="/billing">
-                  <Button
-                    variant="secondary"
-                    className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                  >
-                    View billing
-                  </Button>
-                </Link>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
         )}
 
-        {creditsStatus === "error" && (
-          <Card className="mb-6 border-red-500/40 bg-red-500/10">
-            <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
-              <div>
-                <div className="text-sm font-semibold text-red-100">
-                  Credits are temporarily unavailable
-                </div>
-                <p className="mt-1 text-sm text-red-100/70">
-                  {creditsError ?? "We could not load your balance. Try again."}
-                </p>
-              </div>
-              <Button
-                variant="secondary"
-                className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => refreshCredits()}
-              >
-                Retry
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-8 lg:grid-cols-2">
           {/* LEFT: Generator */}
-          <Card className="border-white/10 bg-white/5">
+          <MotionCard
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="border-white/10 bg-black/40 backdrop-blur-xl rounded-none relative overflow-hidden group"
+          >
+            {/* Neon Border Effect */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00f3ff]/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00f3ff]/50 to-transparent" />
+
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span
-                  className="text-cyan-200"
-                  style={{
-                    textShadow:
-                      "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
-                  }}
-                >
-                  Generate proposal
+                <span className="text-[#00f3ff] font-bold uppercase tracking-widest text-sm">
+                   /// Target Parameters
                 </span>
-                <Badge className="border border-white/10 bg-black/30 text-white">
+                <Badge className="border border-white/10 bg-black text-white/70 rounded-none font-mono text-xs">
                   {ANGLE_META[angle]?.badge ?? "Angle"}
                 </Badge>
               </CardTitle>
-              <p className="text-sm text-white/60">
-                Paste the job post. Choose your angle. Output becomes copy-ready.
-              </p>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm text-white/70">Job title</label>
+                <label className="text-xs text-[#00f3ff]/70 font-mono uppercase tracking-widest">Job Title</label>
                 <Input
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
                   placeholder="e.g. Need a Python developer to scrape a website"
-                  className="border-white/10 bg-black/30 text-white placeholder:text-white/30"
+                  className="border-white/10 bg-black/50 text-white placeholder:text-white/20 rounded-none focus:border-[#00f3ff] focus:ring-1 focus:ring-[#00f3ff]/50 transition-all duration-300"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-white/70">Job description</label>
+                <label className="text-xs text-[#00f3ff]/70 font-mono uppercase tracking-widest">Target Requirements</label>
                 <Textarea
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the full job post here..."
-                  className="min-h-[180px] border-white/10 bg-black/30 text-white placeholder:text-white/30"
+                  placeholder="Paste the target's requirements here. We will dismantle them."
+                  className="min-h-[180px] border-white/10 bg-black/50 text-white placeholder:text-white/20 rounded-none focus:border-[#00f3ff] focus:ring-1 focus:ring-[#00f3ff]/50 transition-all duration-300 font-mono text-sm"
                 />
-                <p className="text-xs text-white/50">
-                  More context = higher reply rate.
-                </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm text-white/70">Power angle</label>
+                  <label className="text-xs text-[#00f3ff]/70 font-mono uppercase tracking-widest">Attack Angle</label>
                   <Select value={angle} onValueChange={setAngle}>
-                    <SelectTrigger className="border-white/10 bg-black/30 text-white">
+                    <SelectTrigger className="border-white/10 bg-black/50 text-white rounded-none focus:ring-[#00f3ff]/50">
                       <SelectValue placeholder="Select angle" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-black border-white/10 text-white">
                       <SelectItem value="authority">Authority</SelectItem>
                       <SelectItem value="scarcity">Scarcity</SelectItem>
                       <SelectItem value="loss_aversion">Loss Aversion</SelectItem>
@@ -495,16 +476,16 @@ export default function DashboardClient({
                       <SelectItem value="neutral">Neutral</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-white/50">{ANGLE_META[angle]?.hint}</p>
+                  <p className="text-[10px] text-white/40 font-mono">{ANGLE_META[angle]?.hint}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm text-white/70">Tone</label>
+                  <label className="text-xs text-[#00f3ff]/70 font-mono uppercase tracking-widest">Tone Protocol</label>
                   <Select value={tone} onValueChange={setTone}>
-                    <SelectTrigger className="border-white/10 bg-black/30 text-white">
+                    <SelectTrigger className="border-white/10 bg-black/50 text-white rounded-none focus:ring-[#00f3ff]/50">
                       <SelectValue placeholder="Select tone" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-black border-white/10 text-white">
                       <SelectItem value="premium">Premium</SelectItem>
                       <SelectItem value="friendly">Friendly</SelectItem>
                       <SelectItem value="direct">Direct</SelectItem>
@@ -512,216 +493,168 @@ export default function DashboardClient({
                   </Select>
 
                   <div className="flex items-center gap-2 pt-1">
-                    <Badge className="border border-white/10 bg-black/30 text-white">
+                    <Badge className="border border-white/10 bg-black/50 text-white rounded-none">
                       {TONE_META[tone]?.badge ?? "Tone"}
                     </Badge>
-                    <span className="text-xs text-white/50">
-                      {TONE_META[tone]?.label}
-                    </span>
                   </div>
                 </div>
               </div>
 
-              <Separator className="bg-white/10" />
+              <Separator className="bg-white/5" />
 
               <div className="space-y-2">
-                <label className="text-sm text-white/70">Proof (truth only)</label>
+                <label className="text-xs text-[#00f3ff]/70 font-mono uppercase tracking-widest">Proof Assets (Truth Only)</label>
                 <Textarea
                   value={proof}
                   onChange={(e) => setProof(e.target.value)}
-                  placeholder="Portfolio links, real metrics, relevant stack, past results you can prove..."
-                  className="min-h-[90px] border-white/10 bg-black/30 text-white placeholder:text-white/30"
+                  placeholder="Portfolio links, real metrics, relevant stack..."
+                  className="min-h-[90px] border-white/10 bg-black/50 text-white placeholder:text-white/20 rounded-none focus:border-[#00f3ff] focus:ring-1 focus:ring-[#00f3ff]/50 transition-all duration-300 font-mono text-sm"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <MotionButton
                   onClick={generate}
                   disabled={!canGenerate}
-                  className="bg-white text-black hover:bg-white/90 disabled:opacity-50"
+                  className="bg-[#00f3ff] text-black hover:bg-[#00f3ff] disabled:opacity-50 font-bold uppercase tracking-widest rounded-none h-12 px-8 flex-1"
+                  whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(0, 243, 255, 0.4)" }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={{ boxShadow: ["0 0 0px #00f3ff", "0 0 10px rgba(0, 243, 255, 0.5)", "0 0 0px #00f3ff"] }}
+                  transition={{
+                    boxShadow: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
                 >
-                  {loading ? "Generating..." : "Generate (1 credit)"}
-                </Button>
-                {loading && (
-                  <span className="inline-flex items-center gap-2 text-xs text-white/60">
-                    <span className="h-3 w-3 animate-spin rounded-full border border-white/20 border-t-white" />
-                    Brewing proposal
-                  </span>
-                )}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                      HACKING SYSTEM...
+                    </span>
+                  ) : (
+                    "DEPLOY LETHAL COPY"
+                  )}
+                </MotionButton>
 
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => {
                     setJobTitle("");
                     setJobDescription("");
                     setProof("");
                     setOutput("");
-                    toast.message("Cleared.");
+                    toast.message("Systems flushed.");
                   }}
-                  className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="border-white/10 bg-transparent text-white/50 hover:text-white hover:bg-white/5 rounded-none font-mono text-xs h-12"
                 >
-                  Clear
+                  RESET
                 </Button>
               </div>
-
-              {credits <= 0 && (
-                <p className="text-sm text-red-300">
-                  You’re out of credits. Upgrade to continue.
-                </p>
-              )}
             </CardContent>
-          </Card>
+          </MotionCard>
 
           {/* RIGHT: Output + History */}
           <div className="space-y-6">
-            {credits <= 0 && (
-              <Card className="border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-black/40 to-black/20">
-                <CardHeader>
-                  <CardTitle>Need more credits?</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-amber-100/80">
-                  <p>
-                    You can keep exploring the dashboard, but generation is paused until you
-                    top up.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <UpgradeDialog />
-                    <Link href="/billing">
-                      <Button
-                        variant="secondary"
-                        className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                      >
-                        Review plans
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <Card className="border-white/10 bg-white/5">
-              <CardHeader className="flex-row items-center justify-between space-y-0">
-                <CardTitle
-                  className="text-cyan-200"
-                  style={{
-                    textShadow:
-                      "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
-                  }}
-                >
-                  Output
+            <MotionCard
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="border-white/10 bg-black/40 backdrop-blur-xl rounded-none h-[500px] flex flex-col"
+            >
+              <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-white/5 pb-4">
+                <CardTitle className="text-[#39ff14] font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#39ff14] animate-pulse shadow-[0_0_5px_#39ff14]" />
+                  System Output
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   {output ? (
                     <CopyButton
                       value={output}
-                      className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      className="border border-[#00f3ff]/30 bg-[#00f3ff]/10 text-[#00f3ff] hover:bg-[#00f3ff]/20 rounded-none uppercase text-xs font-bold"
                     />
                   ) : (
-                    <Badge className="border border-white/10 bg-black/30 text-white">
-                      Awaiting generation
-                    </Badge>
+                    <span className="text-white/20 font-mono text-xs animate-pulse">
+                      AWAITING INSTRUCTION
+                    </span>
                   )}
                 </div>
               </CardHeader>
 
-              <CardContent>
-                <pre className="min-h-[220px] whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-4 text-sm leading-relaxed text-white/90">
-                  {output || "Generate once and your proposal appears here."}
-                </pre>
+              <CardContent className="flex-1 p-0 relative">
+                 <div className="absolute inset-0 p-6 overflow-auto font-mono text-sm leading-relaxed text-white/90 selection:bg-[#39ff14] selection:text-black">
+                   {output ? (
+                      displayedText
+                   ) : (
+                     <div className="h-full flex flex-col items-center justify-center text-white/20">
+                        <div className="text-4xl mb-4 opacity-20">⌨</div>
+                        <p>Initiate sequence to generate lethal copy.</p>
+                     </div>
+                   )}
+                   {isTyping && <span className="inline-block w-2 h-4 bg-[#00f3ff] animate-blink ml-1 align-middle" />}
+                 </div>
               </CardContent>
-            </Card>
+            </MotionCard>
 
-            <Card className="border-white/10 bg-white/5">
+            <MotionCard
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="border-white/10 bg-black/40 backdrop-blur-xl rounded-none"
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span
-                    className="text-cyan-200"
-                    style={{
-                      textShadow:
-                        "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
-                    }}
-                  >
-                    History
+                  <span className="text-white font-bold uppercase tracking-widest text-sm">
+                    Kill List
                   </span>
-                  <Badge className="border border-white/10 bg-black/30 text-white">
-                    Last {proposals.length}
+                  <Badge className="border border-white/10 bg-black text-white/50 rounded-none font-mono text-xs">
+                    {proposals.length} TARGETS
                   </Badge>
                 </CardTitle>
-                <p className="text-sm text-white/60">
-                  Reuse winners. Your best proposals become templates.
-                </p>
               </CardHeader>
 
               <CardContent>
-                <ScrollArea className="h-[320px] pr-3">
+                <ScrollArea className="h-[200px] pr-3">
                   {proposals.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-white/15 bg-black/20 p-6 text-center">
-                      <h3 className="text-base font-semibold text-white/90">
-                        No proposals yet
-                      </h3>
-                      <p className="mt-2 text-sm text-white/60">
-                        Fill in a job post and generate your first draft. We will save
-                        it here so you can reuse winning proposals.
+                    <div className="border border-dashed border-white/10 bg-white/5 p-6 text-center rounded-none">
+                      <p className="text-sm text-white/40 font-mono">
+                        No confirmed kills yet.
                       </p>
-                      <Button
-                        onClick={generate}
-                        disabled={!canGenerate}
-                        className="mt-4 bg-white text-black hover:bg-white/90 disabled:opacity-50"
-                      >
-                        Generate your first proposal
-                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {proposals.map((p) => (
                         <div
                           key={p.id}
-                          className="rounded-xl border border-white/10 bg-black/20 p-4"
+                          className="border border-white/5 bg-black/30 p-3 rounded-none hover:border-[#00f3ff]/30 transition-colors group"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <div className="font-medium text-white/90">
-                                {p.job_title}
-                              </div>
-                              <div className="mt-1 text-xs text-white/50">
-                                {new Date(p.created_at).toLocaleString()}
-                              </div>
+                            <div className="font-medium text-white/80 group-hover:text-[#00f3ff] transition-colors truncate max-w-[200px]">
+                              {p.job_title}
                             </div>
-
                             <div className="flex items-center gap-2">
-                              <Badge className="border border-white/10 bg-black/30 text-white">
+                              <Badge className="border-0 bg-white/5 text-white/50 rounded-none text-[10px] uppercase">
                                 {p.angle}
-                              </Badge>
-                              <Badge
-                                variant="secondary"
-                                className="border border-white/10 bg-white/5 text-white"
-                              >
-                                {p.tone}
                               </Badge>
                             </div>
                           </div>
 
-                          <Separator className="my-3 bg-white/10" />
-
-                          <p className="text-sm text-white/70">
-                            {p.proposal_md.slice(0, 200)}
-                            {p.proposal_md.length > 200 ? "…" : ""}
-                          </p>
-
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              variant="secondary"
-                              className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                              onClick={() => {
-                                setOutput(p.proposal_md);
-                                toast.message("Loaded from history.");
-                              }}
-                            >
-                              Load full
-                            </Button>
-                            <CopyButton
-                              value={p.proposal_md}
-                              className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                            />
+                          <div className="mt-2 flex items-center justify-between">
+                             <span className="text-[10px] text-white/30 font-mono">
+                                {new Date(p.created_at).toLocaleDateString()}
+                             </span>
+                             <div className="flex gap-2">
+                                <button
+                                  className="text-[10px] text-white/50 hover:text-[#00f3ff] uppercase font-bold tracking-wider"
+                                  onClick={() => {
+                                    setOutput(p.proposal_md);
+                                    toast.message("Loaded from kill list.");
+                                  }}
+                                >
+                                  Load
+                                </button>
+                             </div>
                           </div>
                         </div>
                       ))}
@@ -729,86 +662,55 @@ export default function DashboardClient({
                   )}
                 </ScrollArea>
               </CardContent>
-            </Card>
+            </MotionCard>
 
-            <Card className="border-white/10 bg-white/5">
+            <MotionCard
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="border-white/10 bg-black/40 backdrop-blur-xl rounded-none opacity-50 hover:opacity-100 transition-opacity"
+            >
               <CardHeader>
-                <CardTitle
-                  className="text-cyan-200"
-                  style={{
-                    textShadow:
-                      "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
-                  }}
-                >
-                  Admin & debug tools
+                <CardTitle className="text-white/50 font-mono uppercase tracking-widest text-xs">
+                  System Diagnostics
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm text-white/70">
+              <CardContent className="space-y-3 text-xs text-white/50 font-mono">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="text-white/80">Credits status</div>
-                    <div className="text-xs text-white/50">
+                    <div>Link Status</div>
+                    <div className="text-[10px] text-white/30">
                       {creditsStatus === "loading"
-                        ? "Checking now"
+                        ? "PINGING..."
                         : creditsStatus === "error"
-                          ? "Needs attention"
-                          : "Healthy"}
+                          ? "LINK SEVERED"
+                          : "OPTIMAL"}
                     </div>
                   </div>
                   <Button
-                    variant="secondary"
-                    className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    variant="outline"
+                    className="border-white/10 bg-transparent text-white/50 hover:text-white h-6 text-[10px] uppercase"
                     onClick={() => refreshCredits()}
                   >
-                    Refresh credits
+                    Ping
                   </Button>
                 </div>
 
-                <Separator className="bg-white/10" />
+                <Separator className="bg-white/5" />
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="text-white/80">User ID</div>
-                    <div className="text-xs text-white/50">{userId}</div>
+                    <div>Operator ID</div>
+                    <div className="text-[10px] text-white/30 max-w-[150px] truncate">{userId}</div>
                   </div>
                   <CopyButton
                     value={userId}
-                    label="Copy ID"
-                    className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    label="COPY"
+                    className="border-white/10 bg-transparent text-white/50 hover:text-white h-6 w-auto px-2 text-[10px]"
                   />
                 </div>
-
-                <Separator className="bg-white/10" />
-
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-white/80">Last credit check</div>
-                    <div className="text-xs text-white/50">
-                      {lastCreditsCheck
-                        ? lastCreditsCheck.toLocaleTimeString()
-                        : "Not yet"}
-                    </div>
-                  </div>
-                  <Badge className="border border-white/10 bg-black/30 text-white">
-                    {syncing ? "Awaiting payment" : "Idle"}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-white/80">Last successful sync</div>
-                    <div className="text-xs text-white/50">
-                      {lastCreditsSuccess
-                        ? lastCreditsSuccess.toLocaleTimeString()
-                        : "No success yet"}
-                    </div>
-                  </div>
-                  <Badge className="border border-white/10 bg-black/30 text-white">
-                    {creditsStatus === "error" ? "Investigate" : "OK"}
-                  </Badge>
-                </div>
               </CardContent>
-            </Card>
+            </MotionCard>
           </div>
         </div>
       </div>
