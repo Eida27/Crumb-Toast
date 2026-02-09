@@ -13,10 +13,5 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  const redirectTo = new URL(next, origin);
-  if (redirectTo.pathname === "/dashboard") {
-    redirectTo.searchParams.set("confirmed", "1");
-  }
-
-  return NextResponse.redirect(redirectTo);
+  return NextResponse.redirect(new URL(next, origin));
 }
