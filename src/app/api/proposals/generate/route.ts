@@ -22,6 +22,9 @@ const angleInstructions: Record<string, string> = {
   neutral: "Straightforward, professional, helpful.",
 };
 
+const apiKey = process.env.OPENAI_API_KEY;
+const client = apiKey ? new OpenAI({ apiKey }) : null;
+
 export async function POST(req: Request) {
   const supabase = await createClient(); // ✅ IMPORTANT: await
 
@@ -43,11 +46,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No credits left." }, { status: 402 });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  if (!client) {
     return NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
   }
-  const client = new OpenAI({ apiKey });
 
   const system = [
     "You are BidWinner AI: proposal writer optimized for replies.",
