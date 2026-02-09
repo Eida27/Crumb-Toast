@@ -350,7 +350,7 @@ export default function DashboardClient({
                 textShadow: "0 0 20px rgba(0, 243, 255, 0.3)"
               }}
             >
-              BidWinner: <span className="text-[#00f3ff]">The Edge</span>
+              Crumb Toast: <span className="text-[#00f3ff]">The Edge</span>
             </h1>
             <p className="mt-2 text-sm text-gray-400 font-mono">
               Logged in as <span className="text-white">{email}</span>
