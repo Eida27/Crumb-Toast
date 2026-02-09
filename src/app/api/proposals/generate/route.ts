@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { z } from "zod";
 import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { BodySchema } from "./schema";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const BodySchema = z.object({
-  jobTitle: z.string().min(3).max(120),
-  jobDescription: z.string().min(30).max(6000),
-  angle: z.enum(["authority", "scarcity", "loss_aversion", "status", "neutral"]),
-  tone: z.enum(["premium", "friendly", "direct"]),
-  proof: z.string().max(2000).optional().default(""),
-});
 
 const angleInstructions: Record<string, string> = {
   authority: "Credibility-first. Confident structure. No fluff.",
