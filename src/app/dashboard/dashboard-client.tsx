@@ -121,11 +121,8 @@ export default function DashboardClient({
 
   const refreshCredits = useCallback(
     async ({ silent }: { silent?: boolean } = {}) => {
-      const isSilent = Boolean(silent);
-      if (!isSilent) {
-        setCreditsStatus("loading");
-        setCreditsError(null);
-      }
+      setCreditsStatus("loading");
+      setCreditsError(null);
       try {
         const res = await fetch("/api/credits", {
           method: "GET",
@@ -158,17 +155,14 @@ export default function DashboardClient({
         });
 
         setCreditsStatus("idle");
-        setCreditsError(null);
         lastErrorRef.current = null;
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Unable to fetch credits.";
-        if (!isSilent) {
-          setCreditsStatus("error");
-          setCreditsError(message);
-        }
+        setCreditsStatus("error");
+        setCreditsError(message);
 
-        if (!isSilent && lastErrorRef.current !== message) {
+        if (!silent && lastErrorRef.current !== message) {
           toast.error(message);
         }
         lastErrorRef.current = message;
