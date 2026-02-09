@@ -84,6 +84,7 @@ export default function DashboardClient({
 
   const searchParams = useSearchParams();
   const fromPurchase = searchParams.get("purchase") === "1";
+  const fromConfirmation = searchParams.get("confirmed") === "1";
   const [syncing, setSyncing] = useState<boolean>(fromPurchase);
 
   useEffect(() => {
@@ -91,6 +92,11 @@ export default function DashboardClient({
     const t = setTimeout(() => setSyncing(false), 60000);
     return () => clearTimeout(t);
   }, [fromPurchase]);
+
+  useEffect(() => {
+    if (!fromConfirmation) return;
+    toast.success("Email confirmed! You're now signed in.");
+  }, [fromConfirmation]);
 
   const [credits, setCredits] = useState<number>(initialCredits ?? 0);
   const [proposals, setProposals] = useState<ProposalRow[]>(
