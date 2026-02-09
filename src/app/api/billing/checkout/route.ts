@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { resolveTierAndPack } from "./logic";
 
 export const runtime = "nodejs";
-
-const PACKS = {
-  starter: { variantId: "1283005", credits: 100, label: "Starter" },
-  pro: { variantId: "1286595", credits: 500, label: "Pro" },
-  beast: { variantId: "1286597", credits: 2000, label: "Beast" },
-} as const;
-
-type Tier = keyof typeof PACKS;
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -21,8 +14,7 @@ export async function POST(req: Request) {
 
   // Read tier once
   const body = (await req.json().catch(() => ({}))) as { tier?: string };
-  const tier = (body.tier && body.tier in PACKS ? body.tier : "starter") as Tier;
-  const pack = PACKS[tier];
+  const { tier, pack } = resolveTierAndPack(body.tier);
 
   const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
   const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
