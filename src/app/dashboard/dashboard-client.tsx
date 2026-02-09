@@ -23,6 +23,7 @@ import {
 
 import Link from "next/link";
 import { UpgradeDialog } from "@/components/billing/upgrade-dialog";
+import { CopyButton } from "@/components/copy-button";
 
 type ProposalRow = {
   id: string;
@@ -295,15 +296,6 @@ export default function DashboardClient({
       toast.error("Network error. Try again.");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function copy(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard.");
-    } catch {
-      toast.error("Copy failed. Try again.");
     }
   }
 
@@ -619,13 +611,10 @@ export default function DashboardClient({
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   {output ? (
-                    <Button
-                      variant="secondary"
+                    <CopyButton
+                      value={output}
                       className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                      onClick={() => copy(output)}
-                    >
-                      Copy
-                    </Button>
+                    />
                   ) : (
                     <Badge className="border border-white/10 bg-black/30 text-white">
                       Awaiting generation
@@ -729,13 +718,10 @@ export default function DashboardClient({
                             >
                               Load full
                             </Button>
-                            <Button
-                              variant="secondary"
+                            <CopyButton
+                              value={p.proposal_md}
                               className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                              onClick={() => copy(p.proposal_md)}
-                            >
-                              Copy
-                            </Button>
+                            />
                           </div>
                         </div>
                       ))}
@@ -785,13 +771,11 @@ export default function DashboardClient({
                     <div className="text-white/80">User ID</div>
                     <div className="text-xs text-white/50">{userId}</div>
                   </div>
-                  <Button
-                    variant="secondary"
+                  <CopyButton
+                    value={userId}
+                    label="Copy ID"
                     className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                    onClick={() => copy(userId)}
-                  >
-                    Copy ID
-                  </Button>
+                  />
                 </div>
 
                 <Separator className="bg-white/10" />
