@@ -120,6 +120,24 @@ export default function DashboardClient({
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const applyCreditsUpdate = useCallback(
+    (nextBalance: number, options: { silentToast?: boolean } = {}) => {
+      const prevBalance = creditsRef.current;
+      creditsRef.current = nextBalance;
+      setCredits(nextBalance);
+
+      const delta = nextBalance - prevBalance;
+      if (delta > 0 && !options.silentToast) {
+        toast.success(`Credits added: +${delta}`);
+        setSyncing(false);
+      }
+      if (nextBalance > prevBalance && options.silentToast) {
+        setSyncing(false);
+      }
+    },
+    []
+  );
+
   const refreshCredits = useCallback(
     async ({ silent }: { silent?: boolean } = {}) => {
       setCreditsStatus("loading");
@@ -157,13 +175,7 @@ export default function DashboardClient({
           throw new Error("Credits response was missing a balance.");
         }
 
-        setCredits((prev) => {
-          if (data.balance > prev) {
-            toast.success(`Credits added: +${data.balance - prev}`);
-            setSyncing(false);
-          }
-          return data.balance;
-        });
+        applyCreditsUpdate(data.balance, { silentToast: silent });
 
         setLastCreditsSuccess(new Date());
         setCreditsStatus("idle");
@@ -204,11 +216,7 @@ export default function DashboardClient({
         (payload) => {
           const next = (payload.new as { balance?: number } | null)?.balance;
           if (typeof next === "number") {
-            setCredits((prev) => {
-              if (next > prev) toast.success(`Credits added: +${next - prev}`);
-              if (next > prev) setSyncing(false);
-              return next;
-            });
+            applyCreditsUpdate(next);
           }
         }
       )
