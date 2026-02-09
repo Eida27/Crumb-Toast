@@ -411,7 +411,7 @@ export default function DashboardClient({
                 />
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   onClick={generate}
                   disabled={!canGenerate}
@@ -419,6 +419,12 @@ export default function DashboardClient({
                 >
                   {loading ? "Generating..." : "Generate (1 credit)"}
                 </Button>
+                {loading && (
+                  <span className="inline-flex items-center gap-2 text-xs text-white/60">
+                    <span className="h-3 w-3 animate-spin rounded-full border border-white/20 border-t-white" />
+                    Brewing proposal
+                  </span>
+                )}
 
                 <Button
                   variant="secondary"
@@ -488,7 +494,22 @@ export default function DashboardClient({
               <CardContent>
                 <ScrollArea className="h-[320px] pr-3">
                   {proposals.length === 0 ? (
-                    <p className="text-sm text-white/60">No proposals yet.</p>
+                    <div className="rounded-xl border border-dashed border-white/15 bg-black/20 p-6 text-center">
+                      <h3 className="text-base font-semibold text-white/90">
+                        No proposals yet
+                      </h3>
+                      <p className="mt-2 text-sm text-white/60">
+                        Fill in a job post and generate your first draft. We will save
+                        it here so you can reuse winning proposals.
+                      </p>
+                      <Button
+                        onClick={generate}
+                        disabled={!canGenerate}
+                        className="mt-4 bg-white text-black hover:bg-white/90 disabled:opacity-50"
+                      >
+                        Generate your first proposal
+                      </Button>
+                    </div>
                   ) : (
                     <div className="space-y-3">
                       {proposals.map((p) => (
@@ -521,6 +542,11 @@ export default function DashboardClient({
 
                           <Separator className="my-3 bg-white/10" />
 
+                          <p className="text-sm text-white/70">
+                            {p.proposal_md.slice(0, 200)}
+                            {p.proposal_md.length > 200 ? "…" : ""}
+                          </p>
+
                           <div className="flex flex-wrap gap-2">
                             <Button
                               variant="secondary"
@@ -530,7 +556,7 @@ export default function DashboardClient({
                                 toast.message("Loaded from history.");
                               }}
                             >
-                              View
+                              Load full
                             </Button>
                             <Button
                               variant="secondary"
