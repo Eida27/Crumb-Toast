@@ -106,7 +106,6 @@ export default function DashboardClient({
   const [creditsError, setCreditsError] = useState<string | null>(null);
   const [lastCreditsCheck, setLastCreditsCheck] = useState<Date | null>(null);
   const [lastCreditsSuccess, setLastCreditsSuccess] = useState<Date | null>(null);
-  const creditsRef = useRef<number>(initialCredits ?? 0);
   const [proposals, setProposals] = useState<ProposalRow[]>(
     initialProposals ?? []
   );
@@ -195,7 +194,7 @@ export default function DashboardClient({
         setLastCreditsCheck(new Date());
       }
     },
-    [applyCreditsUpdate, router]
+    [router]
   );
 
   // ✅ Credits sync: realtime first, polling fallback
@@ -337,7 +336,15 @@ export default function DashboardClient({
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">BidWinner AI</h1>
+            <h1
+              className="text-3xl font-semibold tracking-tight text-cyan-200"
+              style={{
+                textShadow:
+                  "0 0 12px rgba(34, 211, 238, 0.6), 0 0 32px rgba(56, 189, 248, 0.35)",
+              }}
+            >
+              BidWinner AI
+            </h1>
             <p className="mt-1 text-sm text-white/60">
               Logged in as <span className="text-white/80">{email}</span>
             </p>
@@ -438,7 +445,15 @@ export default function DashboardClient({
           <Card className="border-white/10 bg-white/5">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Generate proposal</span>
+                <span
+                  className="text-cyan-200"
+                  style={{
+                    textShadow:
+                      "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
+                  }}
+                >
+                  Generate proposal
+                </span>
                 <Badge className="border border-white/10 bg-black/30 text-white">
                   {ANGLE_META[angle]?.badge ?? "Angle"}
                 </Badge>
@@ -592,7 +607,15 @@ export default function DashboardClient({
             )}
             <Card className="border-white/10 bg-white/5">
               <CardHeader className="flex-row items-center justify-between space-y-0">
-                <CardTitle>Output</CardTitle>
+                <CardTitle
+                  className="text-cyan-200"
+                  style={{
+                    textShadow:
+                      "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
+                  }}
+                >
+                  Output
+                </CardTitle>
                 <div className="flex items-center gap-2">
                   {output ? (
                     <Button
@@ -620,7 +643,15 @@ export default function DashboardClient({
             <Card className="border-white/10 bg-white/5">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>History</span>
+                  <span
+                    className="text-cyan-200"
+                    style={{
+                      textShadow:
+                        "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
+                    }}
+                  >
+                    History
+                  </span>
                   <Badge className="border border-white/10 bg-black/30 text-white">
                     Last {proposals.length}
                   </Badge>
@@ -715,7 +746,15 @@ export default function DashboardClient({
 
             <Card className="border-white/10 bg-white/5">
               <CardHeader>
-                <CardTitle>Admin & debug tools</CardTitle>
+                <CardTitle
+                  className="text-cyan-200"
+                  style={{
+                    textShadow:
+                      "0 0 10px rgba(34, 211, 238, 0.55), 0 0 24px rgba(56, 189, 248, 0.35)",
+                  }}
+                >
+                  Admin & debug tools
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-white/70">
                 <div className="flex flex-wrap items-center justify-between gap-3">
