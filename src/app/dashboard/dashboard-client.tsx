@@ -150,7 +150,7 @@ export default function DashboardClient({
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const next = (payload.new as any)?.balance;
+          const next = (payload.new as { balance?: number } | null)?.balance;
           if (typeof next === "number") {
             setCredits((prev) => {
               if (next > prev) toast.success(`Credits added: +${next - prev}`);
@@ -222,7 +222,9 @@ export default function DashboardClient({
       }
 
       setOutput(data.proposal ?? "");
-      setCredits(typeof data.newBalance === "number" ? data.newBalance : credits);
+      setCredits((prev) =>
+        typeof data.newBalance === "number" ? data.newBalance : prev
+      );
 
       if (data.saved) {
         setProposals((prev) => [data.saved, ...prev].slice(0, 10));
