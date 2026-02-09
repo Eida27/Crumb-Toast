@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
@@ -86,6 +86,7 @@ export default function DashboardClient({
   const fromPurchase = searchParams.get("purchase") === "1";
   const fromConfirmation = searchParams.get("confirmed") === "1";
   const [syncing, setSyncing] = useState<boolean>(fromPurchase);
+  const lastErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!fromPurchase) return;
@@ -99,6 +100,11 @@ export default function DashboardClient({
   }, [fromConfirmation]);
 
   const [credits, setCredits] = useState<number>(initialCredits ?? 0);
+  const [creditsStatus, setCreditsStatus] = useState<"idle" | "loading" | "error">(
+    "idle"
+  );
+  const [creditsError, setCreditsError] = useState<string | null>(null);
+  const [lastCreditsCheck, setLastCreditsCheck] = useState<Date | null>(null);
   const [proposals, setProposals] = useState<ProposalRow[]>(
     initialProposals ?? []
   );
@@ -113,18 +119,36 @@ export default function DashboardClient({
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Credits sync: realtime first, polling fallback
-  useEffect(() => {
-    let alive = true;
+  const refreshCredits = useCallback(
+    async ({ silent }: { silent?: boolean } = {}) => {
+      const isSilent = Boolean(silent);
+      if (!isSilent) {
+        setCreditsStatus("loading");
+        setCreditsError(null);
+      }
+      try {
+        const res = await fetch("/api/credits", {
+          method: "GET",
+          cache: "no-store",
+        });
 
-    async function refreshCredits() {
-      const res = await fetch("/api/credits", { method: "GET", cache: "no-store" });
-      if (!res.ok) return;
+        let data: { balance?: number; error?: string } | null = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
 
-      const data = await res.json();
-      if (!alive) return;
+        if (!res.ok) {
+          const message =
+            data?.error ?? `Failed to load credits (status ${res.status}).`;
+          throw new Error(message);
+        }
 
-      if (typeof data.balance === "number") {
+        if (typeof data?.balance !== "number") {
+          throw new Error("Credits response was missing a balance.");
+        }
+
         setCredits((prev) => {
           if (data.balance > prev) {
             toast.success(`Credits added: +${data.balance - prev}`);
@@ -132,9 +156,31 @@ export default function DashboardClient({
           }
           return data.balance;
         });
-      }
-    }
 
+        setCreditsStatus("idle");
+        setCreditsError(null);
+        lastErrorRef.current = null;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unable to fetch credits.";
+        if (!isSilent) {
+          setCreditsStatus("error");
+          setCreditsError(message);
+        }
+
+        if (!isSilent && lastErrorRef.current !== message) {
+          toast.error(message);
+        }
+        lastErrorRef.current = message;
+      } finally {
+        setLastCreditsCheck(new Date());
+      }
+    },
+    []
+  );
+
+  // ✅ Credits sync: realtime first, polling fallback
+  useEffect(() => {
     // 1) immediate fetch
     refreshCredits();
 
@@ -163,20 +209,19 @@ export default function DashboardClient({
       .subscribe();
 
     // 3) burst polling (covers webhook delay)
-    const fast = setInterval(refreshCredits, 3000);
+    const fast = setInterval(() => refreshCredits({ silent: true }), 3000);
     const fastStop = setTimeout(() => clearInterval(fast), 45000);
 
     // 4) slow polling fallback (covers realtime disabled / flaky)
-    const slow = setInterval(refreshCredits, 30000);
+    const slow = setInterval(() => refreshCredits({ silent: true }), 30000);
 
     return () => {
-      alive = false;
       clearInterval(fast);
       clearTimeout(fastStop);
       clearInterval(slow);
       supabase.removeChannel(channel);
     };
-  }, [supabase, userId]);
+  }, [refreshCredits, supabase, userId]);
 
   const canGenerate = useMemo(() => {
     const jt = jobTitle.trim().length >= 3;
@@ -297,6 +342,13 @@ export default function DashboardClient({
             >
               Credits: {credits}
             </Badge>
+            <Badge className="border border-white/10 bg-black/30 text-white">
+              {creditsStatus === "loading"
+                ? "Syncing"
+                : creditsStatus === "error"
+                  ? "Needs attention"
+                  : "Live"}
+            </Badge>
 
             <UpgradeDialog />
 
@@ -317,6 +369,54 @@ export default function DashboardClient({
             </Button>
           </div>
         </div>
+
+        {credits <= 0 && (
+          <Card className="mb-6 border-amber-500/40 bg-amber-500/10">
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+              <div>
+                <div className="text-sm font-semibold text-amber-100">
+                  You are out of credits
+                </div>
+                <p className="mt-1 text-sm text-amber-100/70">
+                  Top up now to keep generating proposals without delays.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <UpgradeDialog />
+                <Link href="/billing">
+                  <Button
+                    variant="secondary"
+                    className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  >
+                    View billing
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {creditsStatus === "error" && (
+          <Card className="mb-6 border-red-500/40 bg-red-500/10">
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
+              <div>
+                <div className="text-sm font-semibold text-red-100">
+                  Credits are temporarily unavailable
+                </div>
+                <p className="mt-1 text-sm text-red-100/70">
+                  {creditsError ?? "We could not load your balance. Try again."}
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                onClick={() => refreshCredits()}
+              >
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* LEFT: Generator */}
@@ -571,6 +671,65 @@ export default function DashboardClient({
                     </div>
                   )}
                 </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <Card className="border-white/10 bg-white/5">
+              <CardHeader>
+                <CardTitle>Admin & debug tools</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-white/70">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-white/80">Credits status</div>
+                    <div className="text-xs text-white/50">
+                      {creditsStatus === "loading"
+                        ? "Checking now"
+                        : creditsStatus === "error"
+                          ? "Needs attention"
+                          : "Healthy"}
+                    </div>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    onClick={() => refreshCredits()}
+                  >
+                    Refresh credits
+                  </Button>
+                </div>
+
+                <Separator className="bg-white/10" />
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-white/80">User ID</div>
+                    <div className="text-xs text-white/50">{userId}</div>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    onClick={() => copy(userId)}
+                  >
+                    Copy ID
+                  </Button>
+                </div>
+
+                <Separator className="bg-white/10" />
+
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-white/80">Last credit check</div>
+                    <div className="text-xs text-white/50">
+                      {lastCreditsCheck
+                        ? lastCreditsCheck.toLocaleTimeString()
+                        : "Not yet"}
+                    </div>
+                  </div>
+                  <Badge className="border border-white/10 bg-black/30 text-white">
+                    {syncing ? "Awaiting payment" : "Idle"}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           </div>

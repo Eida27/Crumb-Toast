@@ -16,9 +16,10 @@ export default async function BillingPage() {
     .from("credits")
     .select("balance, updated_at")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   const credits = creditsRes.data?.balance ?? 0;
+  const creditsError = creditsRes.error?.message ?? null;
 
   // show last 10 webhook events (proof of payments)
   const eventsRes = await supabase
@@ -62,6 +63,28 @@ export default async function BillingPage() {
                   Updated: {creditsRes.data?.updated_at ? new Date(creditsRes.data.updated_at).toLocaleString() : "—"}
                 </div>
               </div>
+
+              {credits === 0 && !creditsError && (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+                  <div className="text-sm font-semibold text-amber-100">
+                    You are out of credits
+                  </div>
+                  <p className="mt-1 text-sm text-amber-100/70">
+                    Top up to keep generating proposals without interruptions.
+                  </p>
+                </div>
+              )}
+
+              {creditsError && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4">
+                  <div className="text-sm font-semibold text-red-100">
+                    Credits unavailable
+                  </div>
+                  <p className="mt-1 text-sm text-red-100/70">
+                    {creditsError}
+                  </p>
+                </div>
+              )}
 
               <Separator className="bg-white/10" />
 
