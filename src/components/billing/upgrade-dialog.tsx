@@ -110,10 +110,10 @@ export function UpgradeDialog() {
         <div className="grid gap-4 md:grid-cols-3">
           {TIERS.map((t) => (
             <Card key={t.key} className="border-white/10 bg-white/5">
-              <CardHeader className="items-center text-center">
-                <CardTitle className="flex flex-col items-center gap-2">
+              <CardHeader className="flex flex-col items-center gap-1 text-center">
+                <CardTitle className="flex w-full flex-col items-center gap-1">
                   <div className="text-base">{t.name}</div>
-                  <Badge className="w-[140px] justify-center whitespace-nowrap border border-white/10 bg-black/30 text-center text-white">
+                  <Badge className="mx-auto inline-flex h-7 min-w-[140px] -translate-y-1 items-center justify-center whitespace-nowrap border border-white/10 bg-black/30 px-3 text-center text-white">
                     {t.badge}
                   </Badge>
                 </CardTitle>

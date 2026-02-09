@@ -100,6 +100,7 @@ export default function DashboardClient({
   }, [fromConfirmation]);
 
   const [credits, setCredits] = useState<number>(initialCredits ?? 0);
+  const creditsRef = useRef<number>(initialCredits ?? 0);
   const [creditsStatus, setCreditsStatus] = useState<"idle" | "loading" | "error">(
     "idle"
   );
@@ -194,7 +195,7 @@ export default function DashboardClient({
         setLastCreditsCheck(new Date());
       }
     },
-    [router]
+    [applyCreditsUpdate, router]
   );
 
   // ✅ Credits sync: realtime first, polling fallback
