@@ -110,9 +110,9 @@ export function UpgradeDialog() {
         <div className="grid gap-4 md:grid-cols-3">
           {TIERS.map((t) => (
             <Card key={t.key} className="border-white/10 bg-white/5">
-              <CardHeader className="flex flex-col items-center text-center">
+              <CardHeader className="flex flex-col items-center text-center pt-5 pb-2">
                 <CardTitle className="flex w-full flex-col items-center gap-2">
-                  <div className="text-base">{t.name}</div>
+                  <div className="text-lg font-bold text-white">{t.name}</div>
                   <Badge className="flex h-7 min-w-[130px] items-center justify-center whitespace-nowrap border border-white/10 bg-black/30 px-3 text-center text-white">
                     {t.badge}
                   </Badge>
@@ -123,7 +123,7 @@ export function UpgradeDialog() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-3 pb-4">
+              <CardContent className="space-y-3 pb-6">
                 <ul className="space-y-1 text-xs text-white/60">
                   {t.bullets.map((b) => (
                     <li key={b}>• {b}</li>
