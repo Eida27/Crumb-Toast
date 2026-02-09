@@ -123,7 +123,7 @@ export function UpgradeDialog() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pb-4">
                 <ul className="space-y-1 text-xs text-white/60">
                   {t.bullets.map((b) => (
                     <li key={b}>• {b}</li>
