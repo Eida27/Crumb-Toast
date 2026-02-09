@@ -129,7 +129,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md backdrop-blur-xl bg-black/40 border-white/10 hover:shadow-[0_0_20px_rgba(0,243,255,0.15)] transition-all duration-500 hover:border-cyan-500/20">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight text-white">
-            BidWinner AI
+            Crumb Toast
           </CardTitle>
           <CardDescription className="text-slate-400">
             {mode === "login" ? "Login" : "Create account"} — generate proposals
