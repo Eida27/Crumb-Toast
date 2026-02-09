@@ -106,7 +106,6 @@ export default function DashboardClient({
   const [creditsError, setCreditsError] = useState<string | null>(null);
   const [lastCreditsCheck, setLastCreditsCheck] = useState<Date | null>(null);
   const [lastCreditsSuccess, setLastCreditsSuccess] = useState<Date | null>(null);
-  const creditsRef = useRef<number>(initialCredits ?? 0);
   const [proposals, setProposals] = useState<ProposalRow[]>(
     initialProposals ?? []
   );
@@ -195,7 +194,7 @@ export default function DashboardClient({
         setLastCreditsCheck(new Date());
       }
     },
-    [applyCreditsUpdate, router]
+    [router]
   );
 
   // ✅ Credits sync: realtime first, polling fallback
