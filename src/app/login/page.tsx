@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -72,7 +82,9 @@ export default function LoginPage() {
       if (message.toLowerCase().includes("rate limit")) {
         const nextCooldown = Date.now() + 60_000;
         setCooldownUntil(nextCooldown);
-        setErr("Email rate limit exceeded. Please wait a minute before trying again.");
+        setErr(
+          "Email rate limit exceeded. Please wait a minute before trying again."
+        );
         return;
       }
       return setErr(message);
@@ -107,68 +119,82 @@ export default function LoginPage() {
       setErr(error.message);
       return;
     }
-    setNotice("Confirmation email resent. Please check your inbox or spam folder.");
+    setNotice(
+      "Confirmation email resent. Please check your inbox or spam folder."
+    );
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h1 className="text-2xl font-semibold">BidWinner AI</h1>
-        <p className="text-sm text-white/60 mt-1">
-          {mode === "login" ? "Login" : "Create account"} — generate proposals that feel premium.
-        </p>
+    <main className="min-h-screen bg-void flex items-center justify-center p-6">
+      <Card className="w-full max-w-md backdrop-blur-xl bg-black/40 border-white/10 hover:shadow-[0_0_20px_rgba(0,243,255,0.15)] transition-all duration-500 hover:border-cyan-500/20">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold tracking-tight text-white">
+            BidWinner AI
+          </CardTitle>
+          <CardDescription className="text-slate-400">
+            {mode === "login" ? "Login" : "Create account"} — generate proposals
+            that feel premium.
+          </CardDescription>
+        </CardHeader>
 
-        <div className="mt-6 space-y-3">
-          <input
-            className="w-full rounded-lg bg-black/40 border border-white/10 p-3"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            className="w-full rounded-lg bg-black/40 border border-white/10 p-3"
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <Input
+              className="bg-white/5 border-transparent text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:border-transparent transition-all duration-300 h-11"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              className="bg-white/5 border-transparent text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:border-transparent transition-all duration-300 h-11"
+              placeholder="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
           {err && <p className="text-sm text-red-400">{err}</p>}
           {notice && <p className="text-sm text-emerald-300">{notice}</p>}
 
           {mode === "signup" && notice && (
-            <button
-              type="button"
+            <Button
+              variant="link"
               onClick={resendConfirmation}
               disabled={resending}
-              className="w-full text-sm text-white/70 hover:text-white disabled:opacity-50"
+              className="w-full text-white/70 hover:text-white p-0 h-auto font-normal"
             >
               {resending ? "Resending..." : "Resend confirmation email"}
-            </button>
+            </Button>
           )}
+        </CardContent>
 
-          <button
+        <CardFooter className="flex flex-col space-y-4">
+          <Button
             onClick={submit}
             disabled={loading || cooldownRemaining > 0}
-            className="w-full rounded-lg bg-white text-black font-semibold p-3 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(79,70,229,0.5)] transition-all duration-300 h-11 border-none cursor-pointer"
           >
             {loading
               ? "Please wait..."
               : cooldownRemaining > 0
-                ? `Try again in ${cooldownRemaining}s`
-                : mode === "login"
-                  ? "Login"
-                  : "Sign up"}
-          </button>
+              ? `Try again in ${cooldownRemaining}s`
+              : mode === "login"
+              ? "Login"
+              : "Sign up"}
+          </Button>
 
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="w-full text-sm text-white/70 hover:text-white"
+            className="w-full text-slate-400 hover:text-white hover:bg-white/5"
           >
-            {mode === "login" ? "New here? Create an account" : "Already have an account? Login"}
-          </button>
-        </div>
-      </div>
+            {mode === "login"
+              ? "New here? Create an account"
+              : "Already have an account? Login"}
+          </Button>
+        </CardFooter>
+      </Card>
     </main>
   );
 }
