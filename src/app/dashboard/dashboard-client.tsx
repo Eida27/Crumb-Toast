@@ -105,6 +105,7 @@ export default function DashboardClient({
   );
   const [creditsError, setCreditsError] = useState<string | null>(null);
   const [lastCreditsCheck, setLastCreditsCheck] = useState<Date | null>(null);
+  const [lastCreditsSuccess, setLastCreditsSuccess] = useState<Date | null>(null);
   const [proposals, setProposals] = useState<ProposalRow[]>(
     initialProposals ?? []
   );
@@ -136,6 +137,16 @@ export default function DashboardClient({
           data = null;
         }
 
+        if (res.status === 401) {
+          setCreditsStatus("error");
+          setCreditsError("Session expired. Please sign in again.");
+          if (!silent) {
+            toast.error("Session expired. Please sign in again.");
+          }
+          router.push("/login");
+          return;
+        }
+
         if (!res.ok) {
           const message =
             data?.error ?? `Failed to load credits (status ${res.status}).`;
@@ -154,6 +165,7 @@ export default function DashboardClient({
           return data.balance;
         });
 
+        setLastCreditsSuccess(new Date());
         setCreditsStatus("idle");
         lastErrorRef.current = null;
       } catch (error) {
@@ -170,7 +182,7 @@ export default function DashboardClient({
         setLastCreditsCheck(new Date());
       }
     },
-    []
+    [router]
   );
 
   // ✅ Credits sync: realtime first, polling fallback
@@ -332,7 +344,7 @@ export default function DashboardClient({
           <div className="flex items-center gap-2">
             <Badge
               variant={credits > 0 ? "secondary" : "destructive"}
-              className="border border-white/10 bg-white/5 text-white"
+              className="border border-white/10 bg-gradient-to-r from-white/10 via-white/5 to-transparent text-white"
             >
               Credits: {credits}
             </Badge>
@@ -545,6 +557,30 @@ export default function DashboardClient({
 
           {/* RIGHT: Output + History */}
           <div className="space-y-6">
+            {credits <= 0 && (
+              <Card className="border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-black/40 to-black/20">
+                <CardHeader>
+                  <CardTitle>Need more credits?</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-amber-100/80">
+                  <p>
+                    You can keep exploring the dashboard, but generation is paused until you
+                    top up.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <UpgradeDialog />
+                    <Link href="/billing">
+                      <Button
+                        variant="secondary"
+                        className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      >
+                        Review plans
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <Card className="border-white/10 bg-white/5">
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <CardTitle>Output</CardTitle>
@@ -722,6 +758,20 @@ export default function DashboardClient({
                   </div>
                   <Badge className="border border-white/10 bg-black/30 text-white">
                     {syncing ? "Awaiting payment" : "Idle"}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-white/80">Last successful sync</div>
+                    <div className="text-xs text-white/50">
+                      {lastCreditsSuccess
+                        ? lastCreditsSuccess.toLocaleTimeString()
+                        : "No success yet"}
+                    </div>
+                  </div>
+                  <Badge className="border border-white/10 bg-black/30 text-white">
+                    {creditsStatus === "error" ? "Investigate" : "OK"}
                   </Badge>
                 </div>
               </CardContent>
