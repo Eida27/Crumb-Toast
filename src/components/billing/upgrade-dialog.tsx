@@ -111,9 +111,9 @@ export function UpgradeDialog() {
           {TIERS.map((t) => (
             <Card key={t.key} className="border-white/10 bg-white/5">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between gap-3">
                   <span>{t.name}</span>
-                  <Badge className="border border-white/10 bg-black/30 text-white">
+                  <Badge className="min-w-[120px] justify-center whitespace-nowrap border border-white/10 bg-black/30 text-white">
                     {t.badge}
                   </Badge>
                 </CardTitle>
