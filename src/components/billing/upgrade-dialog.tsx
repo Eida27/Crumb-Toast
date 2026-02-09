@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,32 +24,41 @@ const TIERS: Array<{
   priceLabel: string;
   badge: string;
   bullets: string[];
+  recommended?: boolean;
+  color: string;
 }> = [
   {
     key: "starter",
-    name: "Starter",
+    name: "The Amateur",
     credits: 100,
     priceLabel: "₱99",
-    badge: "Warm-up",
-    bullets: ["For testing + first clients", "100 generations", "No subscription"],
+    badge: "Weakness",
+    bullets: ["For testing only", "100 generations", "Zero leverage"],
+    color: "text-white/60",
   },
   {
     key: "pro",
-    name: "Pro",
+    name: "The Hustler",
     credits: 500,
     priceLabel: "₱399",
-    badge: "Most Popular",
-    bullets: ["Serious freelancing mode", "500 generations", "Better ROI per bid"],
+    badge: "Respect",
+    bullets: ["Serious contender", "500 generations", "High ROI protocol"],
+    recommended: true,
+    color: "text-[#00f3ff]",
   },
   {
     key: "beast",
-    name: "Beast",
+    name: "The Top 1%",
     credits: 2000,
     priceLabel: "₱999",
     badge: "Unfair Advantage",
-    bullets: ["Agency / volume bidding", "2000 generations", "Max value pack"],
+    bullets: ["Agency Volume", "2000 generations", "Market Domination"],
+    recommended: true,
+    color: "text-[#39ff14]",
   },
 ];
+
+const MotionCard = motion.create(Card);
 
 export function UpgradeDialog() {
   const [open, setOpen] = useState(false);
@@ -57,12 +67,12 @@ export function UpgradeDialog() {
   async function startCheckout(tier: Tier) {
     try {
       setLoadingTier(tier);
-      toast.message("Redirecting to Lemon Squeezy checkout…");
+      toast.message("Securing encrypted payment channel...");
 
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }), // ✅ sends tier
+        body: JSON.stringify({ tier }),
       });
 
       const data = await res.json();
@@ -93,53 +103,104 @@ export function UpgradeDialog() {
       <DialogTrigger asChild>
         <Button
           variant="secondary"
-          className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
+          className="border border-[#00f3ff]/30 bg-[#00f3ff]/10 text-[#00f3ff] hover:bg-[#00f3ff]/20 rounded-none uppercase tracking-widest text-xs font-bold shadow-[0_0_10px_rgba(0,243,255,0.2)]"
         >
-          Upgrade
+          Upgrade Arsenal
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-5xl p-6 border-white/10 bg-black text-white">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Choose your power level</DialogTitle>
-          <p className="text-sm text-white/60">
-            Buy credits. Generate more proposals. Win more bids.
+      <DialogContent className="max-w-5xl p-8 border border-white/10 bg-[#050505]/95 backdrop-blur-xl text-white shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:rounded-none">
+        {/* Neon Grid Overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-10"
+           style={{
+             backgroundImage: "linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px)",
+             backgroundSize: "20px 20px"
+           }}
+        />
+
+        <DialogHeader className="relative z-10 text-center mb-6">
+          <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter">
+            Select Your <span className="text-[#00f3ff] text-shadow-[0_0_20px_#00f3ff]">Weapon Grade</span>
+          </DialogTitle>
+          <p className="text-sm text-white/60 font-mono mt-2">
+            More credits = More shots on target. Do not hesitate.
           </p>
         </DialogHeader>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {TIERS.map((t) => (
-            <Card key={t.key} className="border-white/10 bg-white/5">
-              <CardHeader className="flex flex-col items-center text-center pt-5 pb-2">
-                <CardTitle className="flex w-full flex-col items-center gap-2">
-                  <div className="text-lg font-bold text-white">{t.name}</div>
-                  <Badge className="flex h-7 min-w-[130px] items-center justify-center whitespace-nowrap border border-white/10 bg-black/30 px-3 text-center text-white">
+        <div className="relative z-10 grid gap-6 md:grid-cols-3 items-end">
+          {TIERS.map((t) => {
+            const isPremium = t.key !== "starter";
+            return (
+              <MotionCard
+                key={t.key}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className={`relative border bg-black/80 backdrop-blur-md rounded-none flex flex-col justify-between
+                  ${isPremium ? "border-[#00f3ff]/30 shadow-[0_0_30px_rgba(0,243,255,0.1)] h-[420px]" : "border-white/10 h-[380px]"}
+                  ${t.key === "beast" ? "border-[#39ff14]/30 shadow-[0_0_30px_rgba(57,255,20,0.1)]" : ""}
+                `}
+              >
+                {t.recommended && (
+                   <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black ${t.key === 'beast' ? 'bg-[#39ff14]' : 'bg-[#00f3ff]'}`}>
+                     {t.key === 'beast' ? 'Total Domination' : 'Best Value'}
+                   </div>
+                )}
+
+                <CardHeader className="flex flex-col items-center text-center pt-8 pb-2">
+                  <div className={`text-xl font-black uppercase italic tracking-tighter ${t.color}`}>
+                    {t.name}
+                  </div>
+                  <Badge className={`mt-2 border bg-transparent rounded-none uppercase text-[10px] tracking-widest px-2 py-0.5
+                    ${t.key === 'starter' ? 'border-white/20 text-white/40' : ''}
+                    ${t.key === 'pro' ? 'border-[#00f3ff]/50 text-[#00f3ff]' : ''}
+                    ${t.key === 'beast' ? 'border-[#39ff14]/50 text-[#39ff14]' : ''}
+                  `}>
                     {t.badge}
                   </Badge>
-                </CardTitle>
-                <div className="text-sm text-white/60">
-                  <span className="text-white/90 font-semibold">{t.credits}</span>{" "}
-                  credits • {t.priceLabel}
-                </div>
-              </CardHeader>
 
-              <CardContent className="space-y-3 pb-6">
-                <ul className="space-y-1 text-xs text-white/60">
-                  {t.bullets.map((b) => (
-                    <li key={b}>• {b}</li>
-                  ))}
-                </ul>
+                  <div className="mt-6 text-center">
+                    <div className={`text-5xl font-black tracking-tighter ${t.color} drop-shadow-lg`}>
+                      {t.credits}
+                    </div>
+                    <div className="text-xs uppercase tracking-widest text-white/40 mt-1 font-mono">
+                      Credits (Ammo)
+                    </div>
+                  </div>
+                </CardHeader>
 
-                <Button
-                  className="w-full bg-white text-black hover:bg-white/90"
-                  disabled={loadingTier !== null}
-                  onClick={() => startCheckout(t.key)}
-                >
-                  {loadingTier === t.key ? "Redirecting..." : "Buy credits"}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="space-y-6 pb-8 px-6">
+                  <div className="text-center">
+                     <span className="text-xl font-bold text-white">{t.priceLabel}</span>
+                  </div>
+
+                  <ul className="space-y-2 text-xs text-white/60 font-mono text-center">
+                    {t.bullets.map((b) => (
+                      <li key={b} className="flex items-center justify-center gap-2">
+                         <span className={t.color}>///</span> {b}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className={`w-full rounded-none font-bold uppercase tracking-widest h-12 transition-all duration-300
+                      ${t.key === 'starter' ? 'bg-white/10 text-white hover:bg-white/20' : ''}
+                      ${t.key === 'pro' ? 'bg-[#00f3ff] text-black hover:bg-[#00f3ff] hover:shadow-[0_0_20px_#00f3ff]' : ''}
+                      ${t.key === 'beast' ? 'bg-[#39ff14] text-black hover:bg-[#39ff14] hover:shadow-[0_0_20px_#39ff14]' : ''}
+                    `}
+                    disabled={loadingTier !== null}
+                    onClick={() => startCheckout(t.key)}
+                  >
+                    {loadingTier === t.key ? (
+                       <span className="animate-pulse">Initializing...</span>
+                    ) : (
+                       "Acquire Access"
+                    )}
+                  </Button>
+                </CardContent>
+              </MotionCard>
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>
