@@ -18,8 +18,18 @@ export async function GET() {
     .from("credits")
     .select("balance")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
-  return NextResponse.json({ balance: creditsRes.data?.balance ?? 0 }, { headers: { "Cache-Control": "no-store" } });
+  if (creditsRes.error) {
+    return NextResponse.json(
+      { error: "Failed to load credits." },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  return NextResponse.json(
+    { balance: creditsRes.data?.balance ?? 0 },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 
 }
