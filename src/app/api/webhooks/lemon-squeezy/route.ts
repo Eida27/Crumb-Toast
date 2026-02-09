@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getUserIdFromPayload } from "@/lib/lemon-squeezy";
 
 export const runtime = "nodejs";
 
@@ -41,11 +42,7 @@ export async function POST(req: NextRequest) {
   const payload = JSON.parse(rawBody);
   const eventName = req.headers.get("x-event-name") || "unknown";
 
-  const userId =
-    payload?.meta?.custom_data?.user_id ??
-    payload?.meta?.custom?.user_id ??
-    payload?.meta?.custom_data?.userId ??
-    payload?.meta?.custom?.userId;
+  const userId = getUserIdFromPayload(payload);
 
   console.log("[LEMON]", {
     eventName,
