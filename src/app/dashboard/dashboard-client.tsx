@@ -281,9 +281,9 @@ export default function DashboardClient({
       }
 
       setOutput(data.proposal ?? "");
-      setCredits((prev) =>
-        typeof data.newBalance === "number" ? data.newBalance : prev
-      );
+      if (typeof data.newBalance === "number") {
+        applyCreditsUpdate(data.newBalance, { silentToast: true });
+      }
 
       if (data.saved) {
         setProposals((prev) => [data.saved, ...prev].slice(0, 10));
