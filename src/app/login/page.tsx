@@ -75,9 +75,8 @@ export default function LoginPage() {
             },
           });
 
-    setLoading(false);
-
     if (result.error) {
+      setLoading(false);
       const message = result.error.message;
       if (message.toLowerCase().includes("rate limit")) {
         const nextCooldown = Date.now() + 60_000;
@@ -91,10 +90,12 @@ export default function LoginPage() {
     }
 
     if (mode === "signup" && !result.data.session) {
+      setLoading(false);
       setNotice("Check your email for a confirmation link to finish signing up.");
       return;
     }
 
+    // Success - Keep loading state true while navigating
     router.push("/dashboard");
     router.refresh();
   }
