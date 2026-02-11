@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { createClient } from "@/lib/supabase/client";
-import { useTypewriter } from "@/hooks/use-typewriter";
 
 import { Button } from "@/components/ui/button";
+import { TypewriterText } from "@/components/ui/typewriter-text";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -126,8 +126,6 @@ export default function DashboardClient({
 
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const { displayedText, isTyping } = useTypewriter(output, 5);
 
   const applyCreditsUpdate = useCallback(
     (nextBalance: number, options: { silentToast?: boolean } = {}) => {
@@ -585,14 +583,13 @@ export default function DashboardClient({
               <CardContent className="flex-1 p-0 relative">
                  <div className="absolute inset-0 p-6 overflow-auto font-mono text-sm leading-relaxed text-white/90 selection:bg-[#39ff14] selection:text-black">
                    {output ? (
-                      displayedText
+                      <TypewriterText text={output} speed={5} />
                    ) : (
                      <div className="h-full flex flex-col items-center justify-center text-white/20">
                         <div className="text-4xl mb-4 opacity-20">⌨</div>
                         <p>Initiate sequence to generate lethal copy.</p>
                      </div>
                    )}
-                   {isTyping && <span className="inline-block w-2 h-4 bg-[#00f3ff] animate-blink ml-1 align-middle" />}
                  </div>
               </CardContent>
             </MotionCard>
