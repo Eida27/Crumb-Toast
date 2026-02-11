@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { StockpileButton } from "@/app/billing/stockpile-button";
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -113,14 +114,12 @@ export default async function BillingPage() {
               <Separator className="bg-white/5" />
 
               <div className="flex flex-wrap gap-4">
-                <form action="/api/billing/checkout" method="post" className="flex-1">
-                  <Button className="w-full bg-[#00f3ff] text-black hover:bg-[#00f3ff]/80 font-bold uppercase tracking-widest rounded-none h-12 shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:shadow-[0_0_30px_rgba(0,243,255,0.5)] transition-all">
-                    STOCKPILE WEAPONS
-                  </Button>
-                </form>
+                <div className="flex-1">
+                  <StockpileButton />
+                </div>
 
                 <Link href="/dashboard" className="flex-1">
-                  <Button variant="outline" className="w-full border-white/10 bg-transparent text-white hover:bg-white/5 rounded-none font-mono text-xs h-12 uppercase tracking-widest">
+                  <Button variant="outline" className="w-full border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-[#00f3ff] rounded-none font-mono text-xs h-12 uppercase tracking-widest">
                     DEPLOY ASSETS
                   </Button>
                 </Link>
