@@ -26,6 +26,8 @@ import {
 import Link from "next/link";
 import { UpgradeDialog } from "@/components/billing/upgrade-dialog";
 import { CopyButton } from "@/components/copy-button";
+import { MobileNav } from "@/components/mobile-nav";
+import { Menu } from "lucide-react";
 
 type ProposalRow = {
   id: string;
@@ -126,6 +128,8 @@ export default function DashboardClient({
 
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const applyCreditsUpdate = useCallback(
     (nextBalance: number, options: { silentToast?: boolean } = {}) => {
@@ -340,7 +344,27 @@ export default function DashboardClient({
         )}
 
         {/* Header */}
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-6 border-b border-white/5 pb-6">
+        {/* Mobile Header */}
+        <div className="mb-6 flex items-center justify-between lg:hidden border-b border-white/5 pb-4">
+          <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">
+            Crumb Toast
+          </h1>
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} className="text-white">
+            <Menu className="h-6 w-6" />
+          </Button>
+        </div>
+
+        <MobileNav
+          isOpen={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          email={email}
+          credits={credits}
+          onLogout={logout}
+        >
+           <UpgradeDialog />
+        </MobileNav>
+
+        <div className="hidden lg:flex mb-8 flex-wrap items-end justify-between gap-6 border-b border-white/5 pb-6">
           <div>
             <h1
               className="text-4xl font-black tracking-tighter text-white uppercase italic"

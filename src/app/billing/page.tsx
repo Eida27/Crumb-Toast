@@ -50,7 +50,7 @@ export default async function BillingPage() {
       <div className="mx-auto max-w-5xl space-y-8 relative z-10">
         <div className="flex items-end justify-between gap-3 border-b border-white/5 pb-6">
           <div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase italic"
+            <h1 className="text-2xl lg:text-4xl font-black tracking-tighter uppercase italic"
               style={{ textShadow: "0 0 20px rgba(0, 243, 255, 0.3)" }}>
               WAR CHEST
             </h1>
@@ -65,7 +65,7 @@ export default async function BillingPage() {
           </Link>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
           <Card className="border-white/10 bg-black/40 backdrop-blur-xl lg:col-span-2 rounded-none relative overflow-hidden">
              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00f3ff]/50 to-transparent" />
             <CardHeader>
@@ -80,7 +80,7 @@ export default async function BillingPage() {
               <div className="rounded-none border border-white/10 bg-black/50 p-6 relative group">
                  <div className="absolute inset-0 bg-[#00f3ff]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="text-xs text-[#00f3ff]/70 font-mono uppercase tracking-widest mb-2">Ammunition Available</div>
-                <div className="text-6xl font-black text-white tracking-tighter" style={{ textShadow: "0 0 30px rgba(0, 243, 255, 0.2)" }}>
+                <div className="text-4xl lg:text-6xl font-black text-white tracking-tighter" style={{ textShadow: "0 0 30px rgba(0, 243, 255, 0.2)" }}>
                     {credits}
                 </div>
                 <div className="text-[10px] text-white/30 font-mono mt-4 uppercase">
