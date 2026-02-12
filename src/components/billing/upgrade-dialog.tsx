@@ -186,7 +186,7 @@ export function UpgradeDialog() {
                     </ul>
 
                     <Button
-                      className={`w-full rounded-md font-black uppercase tracking-widest h-12 transition-all duration-200 active:scale-95
+                      className={`w-full md:hidden rounded-md font-black uppercase tracking-widest h-12 transition-all duration-200 active:scale-95
                         ${t.key === 'starter' ? 'bg-white/10 text-white hover:bg-white/20' : ''}
                         ${t.key === 'pro' ? 'bg-[#00f3ff] text-black hover:bg-[#00f3ff] hover:shadow-[0_0_20px_#00f3ff]' : ''}
                         ${t.key === 'beast' ? 'bg-[#39ff14] text-black hover:bg-[#39ff14] hover:shadow-[0_0_20px_#39ff14]' : ''}
@@ -206,7 +206,29 @@ export function UpgradeDialog() {
             })}
           </div>
         </div>
-      </DialogContent>
+
+        {/* Fixed Footer for Desktop */}
+        <div className="hidden md:grid grid-cols-3 gap-6 p-6 border-t border-white/10 bg-[#050505] relative z-20 shrink-0">
+          {TIERS.map((t) => (
+             <Button
+               key={t.key}
+               className={`w-full rounded-md font-black uppercase tracking-widest h-12 transition-all duration-200 active:scale-95
+                 ${t.key === 'starter' ? 'bg-white/10 text-white hover:bg-white/20' : ''}
+                 ${t.key === 'pro' ? 'bg-[#00f3ff] text-black hover:bg-[#00f3ff] hover:shadow-[0_0_20px_#00f3ff]' : ''}
+                 ${t.key === 'beast' ? 'bg-[#39ff14] text-black hover:bg-[#39ff14] hover:shadow-[0_0_20px_#39ff14]' : ''}
+               `}
+               disabled={loadingTier !== null}
+               onClick={() => startCheckout(t.key)}
+             >
+               {loadingTier === t.key ? (
+                  <span className="animate-pulse">Initializing...</span>
+               ) : (
+                  "UPGRADE"
+               )}
+             </Button>
+          ))}
+        </div>
+</DialogContent>
     </Dialog>
   );
 }
