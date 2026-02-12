@@ -19,6 +19,7 @@ export default function LoginPage() {
   const supabase = createClient();
 
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const allowedDomains = ["@gmail.com", "@outlook.com", "@hotmail.com", "@yahoo.com", "@icloud.com", "@proton.me"];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -62,6 +63,19 @@ export default function LoginPage() {
       setErr(`Please wait ${cooldownRemaining}s before trying again.`);
       return;
     }
+
+    if (mode === "signup") {
+      const isAllowed = allowedDomains.some((domain) =>
+        email.toLowerCase().endsWith(domain)
+      );
+      if (!isAllowed) {
+        setErr(
+          "We only accept signups from trusted email providers (Gmail, Outlook, Yahoo, iCloud, Proton)."
+        );
+        return;
+      }
+    }
+
     setLoading(true);
 
     const result =
