@@ -127,7 +127,7 @@ export function UpgradeDialog() {
           </p>
         </DialogHeader>
 
-        <div className="relative z-10 grid gap-6 md:grid-cols-3 items-end">
+        <div className="relative z-10 grid gap-6 md:grid-cols-3">
           {TIERS.map((t) => {
             const isPremium = t.key !== "starter";
             return (
@@ -136,8 +136,8 @@ export function UpgradeDialog() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className={`relative border bg-black/80 backdrop-blur-md rounded-none flex flex-col justify-between
-                  ${isPremium ? "border-[#00f3ff]/30 shadow-[0_0_30px_rgba(0,243,255,0.1)] h-[420px]" : "border-white/10 h-[380px]"}
+                className={`relative border bg-black/80 backdrop-blur-md rounded-none flex flex-col justify-between h-full
+                  ${isPremium ? "border-[#00f3ff]/30 shadow-[0_0_30px_rgba(0,243,255,0.1)]" : "border-white/10"}
                   ${t.key === "beast" ? "border-[#39ff14]/30 shadow-[0_0_30px_rgba(57,255,20,0.1)]" : ""}
                 `}
               >
