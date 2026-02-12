@@ -109,98 +109,102 @@ export function UpgradeDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-5xl p-8 border border-white/10 bg-[#050505]/95 backdrop-blur-xl text-white shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:rounded-none">
+      <DialogContent className="max-w-5xl w-[calc(100%-2rem)] max-h-[85vh] p-0 border border-white/10 bg-[#050505]/95 backdrop-blur-xl text-white shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:rounded-none flex flex-col gap-0 overflow-hidden">
         {/* Neon Grid Overlay */}
-        <div className="absolute inset-0 pointer-events-none opacity-10"
+        <div className="absolute inset-0 pointer-events-none opacity-10 z-0"
            style={{
              backgroundImage: "linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px)",
              backgroundSize: "20px 20px"
            }}
         />
 
-        <DialogHeader className="relative z-10 text-center mb-6">
-          <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter">
-            Select Your <span className="text-[#00f3ff] text-shadow-[0_0_20px_#00f3ff]">Weapon Grade</span>
-          </DialogTitle>
-          <p className="text-sm text-white/60 font-mono mt-2">
-            More credits = More shots on target. Do not hesitate.
-          </p>
-        </DialogHeader>
+        <div className="relative z-10 shrink-0 border-b border-white/5 p-6 pb-4">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-2xl sm:text-3xl font-black uppercase italic tracking-tighter">
+              Select Your <span className="text-[#00f3ff] text-shadow-[0_0_20px_#00f3ff]">Weapon Grade</span>
+            </DialogTitle>
+            <p className="text-xs sm:text-sm text-white/60 font-mono mt-2">
+              More credits = More shots on target. Do not hesitate.
+            </p>
+          </DialogHeader>
+        </div>
 
-        <div className="relative z-10 grid gap-6 md:grid-cols-3">
-          {TIERS.map((t) => {
-            const isPremium = t.key !== "starter";
-            return (
-              <MotionCard
-                key={t.key}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className={`relative border bg-black/80 backdrop-blur-md rounded-none flex flex-col justify-between h-full
-                  ${isPremium ? "border-[#00f3ff]/30 shadow-[0_0_30px_rgba(0,243,255,0.1)]" : "border-white/10"}
-                  ${t.key === "beast" ? "border-[#39ff14]/30 shadow-[0_0_30px_rgba(57,255,20,0.1)]" : ""}
-                `}
-              >
-                {t.recommended && (
-                   <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black ${t.key === 'beast' ? 'bg-[#39ff14]' : 'bg-[#00f3ff]'}`}>
-                     {t.key === 'beast' ? 'Total Domination' : 'Best Value'}
-                   </div>
-                )}
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-8 pt-4">
+          <div className="grid gap-4 md:gap-6 md:grid-cols-3">
+            {TIERS.map((t) => {
+              const isPremium = t.key !== "starter";
+              return (
+                <MotionCard
+                  key={t.key}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className={`relative border bg-black/80 backdrop-blur-md rounded-none flex flex-col justify-between h-full
+                    ${isPremium ? "border-[#00f3ff]/30 shadow-[0_0_30px_rgba(0,243,255,0.1)]" : "border-white/10"}
+                    ${t.key === "beast" ? "border-[#39ff14]/30 shadow-[0_0_30px_rgba(57,255,20,0.1)]" : ""}
+                  `}
+                >
+                  {t.recommended && (
+                     <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black ${t.key === 'beast' ? 'bg-[#39ff14]' : 'bg-[#00f3ff]'}`}>
+                       {t.key === 'beast' ? 'Total Domination' : 'Best Value'}
+                     </div>
+                  )}
 
-                <CardHeader className="flex flex-col items-center text-center pt-8 pb-2">
-                  <div className={`text-xl font-black uppercase italic tracking-tighter ${t.color}`}>
-                    {t.name}
-                  </div>
-                  <Badge className={`mt-2 border bg-transparent rounded-none uppercase text-[10px] tracking-widest px-2 py-0.5
-                    ${t.key === 'starter' ? 'border-white/20 text-white/40' : ''}
-                    ${t.key === 'pro' ? 'border-[#00f3ff]/50 text-[#00f3ff]' : ''}
-                    ${t.key === 'beast' ? 'border-[#39ff14]/50 text-[#39ff14]' : ''}
-                  `}>
-                    {t.badge}
-                  </Badge>
-
-                  <div className="mt-6 text-center">
-                    <div className={`text-5xl font-black tracking-tighter ${t.color} drop-shadow-lg`}>
-                      {t.credits}
+                  <CardHeader className="flex flex-col items-center text-center pt-6 md:pt-8 pb-2">
+                    <div className={`text-xl font-black uppercase italic tracking-tighter ${t.color}`}>
+                      {t.name}
                     </div>
-                    <div className="text-xs uppercase tracking-widest text-white/40 mt-1 font-mono">
-                      Credits (Ammo)
+                    <Badge className={`mt-2 border bg-transparent rounded-none uppercase text-[10px] tracking-widest px-2 py-0.5
+                      ${t.key === 'starter' ? 'border-white/20 text-white/40' : ''}
+                      ${t.key === 'pro' ? 'border-[#00f3ff]/50 text-[#00f3ff]' : ''}
+                      ${t.key === 'beast' ? 'border-[#39ff14]/50 text-[#39ff14]' : ''}
+                    `}>
+                      {t.badge}
+                    </Badge>
+
+                    <div className="mt-6 text-center">
+                      <div className={`text-5xl font-black tracking-tighter ${t.color} drop-shadow-lg`}>
+                        {t.credits}
+                      </div>
+                      <div className="text-xs uppercase tracking-widest text-white/40 mt-1 font-mono">
+                        Credits (Ammo)
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent className="space-y-6 pb-8 px-6">
-                  <div className="text-center">
-                     <span className="text-xl font-bold text-white">{t.priceLabel}</span>
-                  </div>
+                  <CardContent className="space-y-6 pb-6 px-4 md:pb-8 md:px-6">
+                    <div className="text-center">
+                       <span className="text-xl font-bold text-white">{t.priceLabel}</span>
+                    </div>
 
-                  <ul className="space-y-2 text-xs text-white/60 font-mono text-center">
-                    {t.bullets.map((b) => (
-                      <li key={b} className="flex items-center justify-center gap-2">
-                         <span className={t.color}>///</span> {b}
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-2 text-xs text-white/60 font-mono text-center">
+                      {t.bullets.map((b) => (
+                        <li key={b} className="flex items-center justify-center gap-2">
+                           <span className={t.color}>///</span> {b}
+                        </li>
+                      ))}
+                    </ul>
 
-                  <Button
-                    className={`w-full rounded-md font-black uppercase tracking-widest h-12 transition-all duration-200 active:scale-95
-                      ${t.key === 'starter' ? 'bg-white/10 text-white hover:bg-white/20' : ''}
-                      ${t.key === 'pro' ? 'bg-[#00f3ff] text-black hover:bg-[#00f3ff] hover:shadow-[0_0_20px_#00f3ff]' : ''}
-                      ${t.key === 'beast' ? 'bg-[#39ff14] text-black hover:bg-[#39ff14] hover:shadow-[0_0_20px_#39ff14]' : ''}
-                    `}
-                    disabled={loadingTier !== null}
-                    onClick={() => startCheckout(t.key)}
-                  >
-                    {loadingTier === t.key ? (
-                       <span className="animate-pulse">Initializing...</span>
-                    ) : (
-                       "UPGRADE"
-                    )}
-                  </Button>
-                </CardContent>
-              </MotionCard>
-            );
-          })}
+                    <Button
+                      className={`w-full rounded-md font-black uppercase tracking-widest h-12 transition-all duration-200 active:scale-95
+                        ${t.key === 'starter' ? 'bg-white/10 text-white hover:bg-white/20' : ''}
+                        ${t.key === 'pro' ? 'bg-[#00f3ff] text-black hover:bg-[#00f3ff] hover:shadow-[0_0_20px_#00f3ff]' : ''}
+                        ${t.key === 'beast' ? 'bg-[#39ff14] text-black hover:bg-[#39ff14] hover:shadow-[0_0_20px_#39ff14]' : ''}
+                      `}
+                      disabled={loadingTier !== null}
+                      onClick={() => startCheckout(t.key)}
+                    >
+                      {loadingTier === t.key ? (
+                         <span className="animate-pulse">Initializing...</span>
+                      ) : (
+                         "UPGRADE"
+                      )}
+                    </Button>
+                  </CardContent>
+                </MotionCard>
+              );
+            })}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
