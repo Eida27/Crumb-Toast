@@ -1,4 +1,3 @@
-
 export const PACKS = {
   starter: { variantId: "1283005", credits: 100, label: "Starter" },
   pro: { variantId: "1286595", credits: 500, label: "Pro" },
@@ -11,4 +10,14 @@ export function resolveTierAndPack(inputTier?: string): { tier: Tier; pack: (typ
   const tier = (inputTier && inputTier in PACKS ? inputTier : "starter") as Tier;
   const pack = PACKS[tier];
   return { tier, pack };
+}
+
+export function getCreditsByVariantId(variantId: string | number): number | undefined {
+  const vId = String(variantId);
+  for (const key of Object.keys(PACKS) as Tier[]) {
+    if (PACKS[key].variantId === vId) {
+      return PACKS[key].credits;
+    }
+  }
+  return undefined;
 }
