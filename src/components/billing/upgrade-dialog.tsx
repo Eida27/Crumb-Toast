@@ -33,7 +33,7 @@ const TIERS: Array<{
     credits: 100,
     priceLabel: "₱99",
     badge: "Weakness",
-    bullets: ["For testing only", "100 generations", "Zero leverage"],
+    bullets: ["Starter Access", "100 generations", "High-Speed Generations"],
     color: "text-white/60",
   },
   {
