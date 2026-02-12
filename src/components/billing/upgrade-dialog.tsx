@@ -183,7 +183,7 @@ export function UpgradeDialog() {
                   </ul>
 
                   <Button
-                    className={`w-full rounded-none font-bold uppercase tracking-widest h-12 transition-all duration-300
+                    className={`w-full rounded-md font-black uppercase tracking-widest h-12 transition-all duration-200 active:scale-95
                       ${t.key === 'starter' ? 'bg-white/10 text-white hover:bg-white/20' : ''}
                       ${t.key === 'pro' ? 'bg-[#00f3ff] text-black hover:bg-[#00f3ff] hover:shadow-[0_0_20px_#00f3ff]' : ''}
                       ${t.key === 'beast' ? 'bg-[#39ff14] text-black hover:bg-[#39ff14] hover:shadow-[0_0_20px_#39ff14]' : ''}
@@ -194,7 +194,7 @@ export function UpgradeDialog() {
                     {loadingTier === t.key ? (
                        <span className="animate-pulse">Initializing...</span>
                     ) : (
-                       "Acquire Access"
+                       "UPGRADE"
                     )}
                   </Button>
                 </CardContent>
