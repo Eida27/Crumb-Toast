@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserIdFromPayload } from "@/lib/lemon-squeezy";
+import { getCreditsByVariantId } from "@/app/api/billing/checkout/logic";
 
 export const runtime = "nodejs";
 
@@ -78,11 +79,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, ignored: "missing user_id" });
     }
 
-    const rawCredits = payload?.meta?.custom_data?.credits ?? "100";
-    const creditsToGrant = Number(rawCredits);
+    const variantId = payload?.data?.attributes?.first_order_item?.variant_id;
+    const creditsToGrant = getCreditsByVariantId(variantId);
 
-    if (!Number.isFinite(creditsToGrant) || creditsToGrant <= 0) {
-      return NextResponse.json({ ok: true, ignored: "invalid credits" });
+    if (!creditsToGrant) {
+      return NextResponse.json({ ok: true, ignored: `unknown variant: ${variantId}` });
     }
 
     const creditRes = await admin.rpc("grant_credits", {
